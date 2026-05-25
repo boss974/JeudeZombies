@@ -257,20 +257,29 @@ zombieSpawns.Parent = arena
 -- Cleanup anciens spawns (du builder précédent)
 for _, c in ipairs(zombieSpawns:GetChildren()) do c:Destroy() end
 
--- 12 points côtiers répartis autour de l'île
+-- 16 points côtiers répartis SUR LA PLAGE (sable, Y=10).
+-- Avant : Y=5 et X/Z trop loin → zombies tombaient dans la mer.
+-- Maintenant : sur le sable (Y=10 > terrain sand à Y=3.5), à l'intérieur
+-- du périmètre île (rayon ~280-300 studs) pour qu'ils marchent réellement.
 local coastalSpawns = {
-	Vector3.new(   0, 5, -330),  -- Nord
-	Vector3.new( 200, 5, -300),
-	Vector3.new( 350, 5, -200),  -- Nord-Est
-	Vector3.new( 380, 5,    0),  -- Est
-	Vector3.new( 350, 5,  200),  -- Sud-Est
-	Vector3.new( 200, 5,  300),
-	Vector3.new(   0, 5,  330),  -- Sud
-	Vector3.new(-200, 5,  300),
-	Vector3.new(-350, 5,  200),  -- Sud-Ouest
-	Vector3.new(-380, 5,    0),  -- Ouest
-	Vector3.new(-350, 5, -200),  -- Nord-Ouest
-	Vector3.new(-200, 5, -300),
+	-- Nord (côte de Saint-Denis / Sainte-Marie)
+	Vector3.new(  20, 10, -295),
+	Vector3.new( 120, 10, -285),
+	Vector3.new(-100, 10, -280),
+	-- Est (côte Saint-Benoît / Sainte-Rose)
+	Vector3.new( 340, 10, -130),
+	Vector3.new( 360, 10,   30),
+	Vector3.new( 320, 10,  150),
+	-- Sud (Saint-Pierre / Saint-Joseph)
+	Vector3.new( 130, 10,  275),
+	Vector3.new(   0, 10,  290),
+	Vector3.new(-130, 10,  270),
+	-- Ouest (Saint-Leu / Saint-Paul)
+	Vector3.new(-310, 10,  130),
+	Vector3.new(-360, 10,    0),
+	Vector3.new(-330, 10, -130),
+	-- Nord-Ouest (Le Port / La Possession)
+	Vector3.new(-200, 10, -260),
 }
 
 for i, pos in ipairs(coastalSpawns) do
