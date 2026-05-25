@@ -55,7 +55,7 @@ export class WaveManager {
     }
   }
 
-  update(dt, zombies) {
+  update(dt, zombies, isNight = false) {
     this.messageTimer = Math.max(0, this.messageTimer - dt);
 
     if (this.status === "intermission") {
@@ -73,7 +73,13 @@ export class WaveManager {
           const type = this._pickWaveType();
           this.toSpawn--;
           this.spawnTimer = CONFIG.wave.spawnInterval;
-          return new Zombie(sp.x, sp.y, type);
+          const zombie = new Zombie(sp.x, sp.y, type);
+          if (isNight) {
+            zombie.speed *= CONFIG.world.nightDifficultyMultiplier;
+            zombie.hp = Math.ceil(zombie.hp * 1.12);
+            zombie.maxHp = zombie.hp;
+          }
+          return zombie;
         }
         this.spawnTimer = 0.2;
       }

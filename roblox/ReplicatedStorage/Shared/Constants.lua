@@ -18,6 +18,8 @@ Constants.RemoteName = {
 	BuyUpgrade = "BuyUpgrade",
 	StartGame = "StartGame",
 	GameOver = "GameOver",
+	ShootWeapon = "ShootWeapon",
+	PlaceDefense = "PlaceDefense",
 }
 
 Constants.DataStoreKey = "PlayerData_v1"

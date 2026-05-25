@@ -46,6 +46,16 @@
 - Skins
 - Game Pass plus tard
 
+## V0.65 - Fun core Roblox
+
+- Arme de base serveur
+- Balles / raycast / cooldown
+- Recul leger
+- Blagues creoles playerShoot
+- Barricades a poser
+- Tourelles automatiques
+- Boss Roi-Cendre prototype
+
 ## V0.7 - Prototype web solo
 
 - Page web
@@ -70,6 +80,21 @@
 - Description
 - Tests mobile / PC
 - Correction bugs
+
+## V1.1 - Tourisme vivant
+
+- PNJ habitants dans les villes
+- Panneaux d'anecdotes touristiques
+- Saint-Benoit pluie + arc-en-ciel teste en Studio
+- Cycle jour/nuit 30 minutes
+- Vagues de nuit plus dures
+
+## V2.0 - Autres supports
+
+- Prototype web propre et partageable
+- Choix Godot ou Unity
+- Vertical slice mobile Android
+- Build iPhone apres compte Apple Developer
 
 ## Priorité absolue
 

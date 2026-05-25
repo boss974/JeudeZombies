@@ -10,12 +10,22 @@ villes vague par vague pendant que le Piton de la Fournaise libère sa cendre.
 Le ton est **cartoon apocalypse non-gore**, pensé pour un public jeune
 (cf. `SAFETY_LEGAL_FRAMEWORK.md`).
 
-## Deux versions
+## Vision
+
+Objectif : faire un jeu **fun, touristique et rigolo**, jouable d'abord sur
+Roblox, puis portable vers web/mobile. Le joueur visite La Réunion, protège ses
+villes, découvre des lieux connus, rit avec des répliques créoles familiales et
+construit des défenses contre des vagues de zombies cartoon.
+
+La direction est détaillée dans [`PRODUCT_VISION.md`](PRODUCT_VISION.md) et la
+stratégie multi-supports dans [`MULTIPLATFORM_STRATEGY.md`](MULTIPLATFORM_STRATEGY.md).
+
+## Deux versions actuelles
 
 | Version | État | Comment lancer |
 |---|---|---|
-| **Web solo** | ✅ Jouable | Servir `web/` en HTTP, ouvrir `/client/` |
-| **Roblox**   | ✅ Squelette + carte | Rojo serve → connecter le plugin Studio |
+| **Web solo** | ✅ Jouable + défenses | Servir `web/` en HTTP, ouvrir `/client/` |
+| **Roblox**   | ✅ Carte + vagues + tir + défenses serveur | Rojo serve → connecter le plugin Studio |
 
 ## Démarrage rapide
 
@@ -27,6 +37,8 @@ npx http-server web -p 5180
 ```
 
 ZQSD ou flèches pour bouger, souris pour viser et tirer.
+Touches `1`/`2` pour choisir tourelle ou barricade, puis `E` ou clic droit pour
+poser une défense avec les coins.
 
 ### Version Roblox
 
@@ -39,6 +51,8 @@ Puis dans Roblox Studio : ouvrir un place vide, installer le plugin Rojo
 
 - la carte de La Réunion (île + 2 pitons + 24 villes + océan)
 - les services serveur (vagues, zombies, récompenses, sauvegarde)
+- un tir serveur simple et validé
+- le placement de barricades et tourelles
 - l'UI client (intro + dialogues narratifs)
 
 Presser **Play** pour tester.
@@ -85,11 +99,11 @@ Détails dans [`ARCHITECTURE.md`](ARCHITECTURE.md).
 3. ✅ Prototype Roblox jouable (squelette + map)
 4. ✅ Système de vagues partagé
 5. ✅ Histoire et narration (intro + dialogues + lore)
-6. ⏳ Tower defense : placement d'unités
-7. ⏳ Progression et sauvegarde inter-sessions Roblox (DataStore en place)
-8. ⏳ Multijoueur web (Socket.IO)
-9. ⏳ Monétisation cosmétique Roblox
-10. ⏳ Version publique
+6. ✅ Première boucle tower defense : barricades + tourelles
+7. ⏳ Test Studio réel : Saint-Benoît, pluie, volcan, screenshots
+8. ⏳ PNJ vivants et ambiance touristique
+9. ⏳ Publication Roblox : icône, miniature, description, place publique
+10. ⏳ Portage mobile Play Store / iPhone via Godot ou Unity
 
 ## Méthode
 

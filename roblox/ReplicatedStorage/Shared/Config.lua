@@ -11,7 +11,28 @@ Config.Arena = {
 Config.Player = {
 	MaxHealth = 100,
 	WalkSpeed = 16,
-	StartCoins = 0,
+	StartCoins = 24,
+}
+
+Config.Weapon = {
+	BaseDamage = 25,
+	Range = 180,
+	Cooldown = 0.22,
+	RecoilStuds = 0.8,
+}
+
+Config.Defense = {
+	Turret = {
+		Cost = 18,
+		Health = 180,
+		Range = 70,
+		Damage = 16,
+		FireRate = 0.8,
+	},
+	Barricade = {
+		Cost = 10,
+		Health = 300,
+	},
 }
 
 Config.Zombie = {
@@ -20,6 +41,7 @@ Config.Zombie = {
 	Heavy    = { Health = 140, Damage = 20, Speed = 5,  Score = 25, Coins = 3 },
 	MiniBoss = { Health = 350, Damage = 35, Speed = 7,  Score = 80, Coins = 12 },
 	Boss     = { Health = 900, Damage = 50, Speed = 6,  Score = 250, Coins = 40 },
+	RoiCendre = { Health = 1800, Damage = 65, Speed = 5, Score = 700, Coins = 120 },
 }
 
 Config.Wave = {

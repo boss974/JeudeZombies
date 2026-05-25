@@ -15,6 +15,11 @@ export const ENEMY_TYPE = {
   BOSS: "boss"
 };
 
+export const DEFENSE_TYPE = {
+  TURRET: "turret",
+  BARRICADE: "barricade"
+};
+
 export const STORAGE_KEYS = {
   BEST_SCORE: "zombies.bestScore",
   TOTAL_COINS: "zombies.totalCoins",

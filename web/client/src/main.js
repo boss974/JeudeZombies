@@ -1,5 +1,5 @@
 import { GameScene } from "./game/GameScene.js";
-import { STORAGE_KEYS } from "../../shared/constants.js";
+import { DEFENSE_TYPE, STORAGE_KEYS } from "../../shared/constants.js";
 import { STORY, randomLine } from "../../shared/story.js";
 
 const canvas    = document.getElementById("game");
@@ -17,7 +17,8 @@ const hud = {
   score:   document.getElementById("hud-score"),
   coins:   document.getElementById("hud-coins"),
   best:    document.getElementById("hud-best"),
-  hpFill:  document.getElementById("hud-hp-fill")
+  hpFill:  document.getElementById("hud-hp-fill"),
+  phase:   document.getElementById("hud-phase")
 };
 
 // ============================================================================
@@ -54,6 +55,8 @@ scene.onBossWave = () => showDialog(randomLine("bossWarning"), "danger");
 scene.onPlayerShoot = () => showDialog(randomLine("playerShoot"), "default");
 scene.onPlayerHit   = () => showDialog(randomLine("playerHit"), "danger");
 scene.onLowHp       = () => showDialog(randomLine("lowHp"), "danger");
+scene.onDefensePlaced = (name) => showDialog(`${name} posée. Sa zafer !`, "good");
+scene.onNoCoins = () => showDialog("Pas assez de coins, tilamb.", "danger");
 
 scene.onGameOver = ({ wave, score, coins }) => {
   document.getElementById("go-mission").textContent = currentMission().city;
@@ -151,6 +154,19 @@ document.getElementById("btn-reset-story").addEventListener("click", (e) => {
   localStorage.removeItem(STORAGE_KEYS.STORY_MISSION_INDEX);
   localStorage.removeItem(STORAGE_KEYS.STORY_INTRO_SEEN);
   showIntro();
+});
+
+document.getElementById("btn-defense-turret").addEventListener("click", () => {
+  scene.setSelectedDefense(DEFENSE_TYPE.TURRET);
+  showDialog("Tourelle sélectionnée : clic droit pour poser.", "default");
+});
+document.getElementById("btn-defense-barricade").addEventListener("click", () => {
+  scene.setSelectedDefense(DEFENSE_TYPE.BARRICADE);
+  showDialog("Barricade sélectionnée : clic droit pour poser.", "default");
+});
+addEventListener("keydown", (e) => {
+  if (e.code === "Digit1") scene.setSelectedDefense(DEFENSE_TYPE.TURRET);
+  if (e.code === "Digit2") scene.setSelectedDefense(DEFENSE_TYPE.BARRICADE);
 });
 
 // ============================================================================

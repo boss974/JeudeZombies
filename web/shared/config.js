@@ -19,6 +19,26 @@ export const CONFIG = {
     invulnAfterHit: 0.5
   },
 
+  defense: {
+    turret: {
+      label: "Tourelle",
+      cost: 18,
+      radius: 16,
+      range: 190,
+      fireRate: 0.55,
+      damage: 20,
+      bulletSpeed: 430,
+      color: "#f4b942"
+    },
+    barricade: {
+      label: "Barricade",
+      cost: 10,
+      radius: 24,
+      hp: 260,
+      color: "#8a5a2b"
+    }
+  },
+
   zombie: {
     normal:  { radius: 14, speed: 70,  hp: 50,  damage: 10, score: 10, coins: 1, color: "#5a8a4a" },
     fast:    { radius: 11, speed: 130, hp: 30,  damage: 8,  score: 15, coins: 2, color: "#8acb6a" },
@@ -37,6 +57,11 @@ export const CONFIG = {
     fastUnlockAt: 2,
     heavyUnlockAt: 4,
     maxActive: 40              // cap simultané (anti-lag)
+  },
+
+  world: {
+    dayNightSeconds: 120,
+    nightDifficultyMultiplier: 1.22
   },
 
   scoring: {

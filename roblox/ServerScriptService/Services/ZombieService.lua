@@ -73,6 +73,14 @@ function ZombieService.GetActiveCount()
 	return n
 end
 
+function ZombieService.GetActiveZombies()
+	local list = {}
+	for rig in pairs(active) do
+		if rig.Parent then table.insert(list, rig) end
+	end
+	return list
+end
+
 function ZombieService.Spawn(zombieType)
 	local stats = Config.Zombie[zombieType]
 	if not stats then return end

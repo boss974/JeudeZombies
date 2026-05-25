@@ -4,9 +4,11 @@ export class Input {
   constructor(canvas) {
     this.canvas = canvas;
     this.keys = new Set();
-    this.mouse = { x: 0, y: 0, down: false };
+    this.justPressed = new Set();
+    this.mouse = { x: 0, y: 0, down: false, rightPressed: false };
 
     addEventListener("keydown", (e) => {
+      if (!this.keys.has(e.code)) this.justPressed.add(e.code);
       this.keys.add(e.code);
       // Empêche le scroll avec les flèches
       if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].includes(e.code)) {
@@ -21,7 +23,11 @@ export class Input {
       this.mouse.x = (e.clientX - rect.left) * (canvas.width / rect.width);
       this.mouse.y = (e.clientY - rect.top)  * (canvas.height / rect.height);
     });
-    canvas.addEventListener("mousedown", () => { this.mouse.down = true; });
+    canvas.addEventListener("contextmenu", (e) => e.preventDefault());
+    canvas.addEventListener("mousedown", (e) => {
+      if (e.button === 2) this.mouse.rightPressed = true;
+      else this.mouse.down = true;
+    });
     addEventListener("mouseup", () => { this.mouse.down = false; });
     // Au cas où le curseur quitte la fenêtre
     addEventListener("blur", () => { this.keys.clear(); this.mouse.down = false; });
@@ -36,5 +42,17 @@ export class Input {
     const len = Math.hypot(dx, dy);
     if (len > 0) { dx /= len; dy /= len; }
     return { x: dx, y: dy };
+  }
+
+  consumeRightClick() {
+    const pressed = this.mouse.rightPressed;
+    this.mouse.rightPressed = false;
+    return pressed;
+  }
+
+  consumeKey(code) {
+    const pressed = this.justPressed.has(code);
+    this.justPressed.delete(code);
+    return pressed;
   }
 }

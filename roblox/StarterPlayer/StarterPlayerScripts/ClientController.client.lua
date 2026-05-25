@@ -4,6 +4,7 @@
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes   = require(Shared:WaitForChild("Remotes"))
@@ -20,6 +21,9 @@ end
 local waveR  = Remotes.Get(Constants.RemoteName.WaveUpdate)
 local scoreR = Remotes.Get(Constants.RemoteName.ScoreUpdate)
 local overR  = Remotes.Get(Constants.RemoteName.GameOver)
+local shootR = Remotes.Get(Constants.RemoteName.ShootWeapon)
+local placeR = Remotes.Get(Constants.RemoteName.PlaceDefense)
+local selectedDefense = "Turret"
 
 if waveR then
 	waveR.OnClientEvent:Connect(function(wave, status)
@@ -43,3 +47,23 @@ if overR then
 		print("[Client] Game over", payload)
 	end)
 end
+
+UserInputService.InputBegan:Connect(function(input, processed)
+	if processed then return end
+	if input.KeyCode == Enum.KeyCode.One then
+		selectedDefense = "Turret"
+		print("[Client] Defense selectionnee: Turret")
+	elseif input.KeyCode == Enum.KeyCode.Two then
+		selectedDefense = "Barricade"
+		print("[Client] Defense selectionnee: Barricade")
+	end
+end)
+
+local mouse = player:GetMouse()
+mouse.Button1Down:Connect(function()
+	if shootR then shootR:FireServer(mouse.Hit.Position) end
+end)
+
+mouse.Button2Down:Connect(function()
+	if placeR then placeR:FireServer(selectedDefense, mouse.Hit.Position) end
+end)

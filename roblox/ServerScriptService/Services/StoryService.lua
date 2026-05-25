@@ -25,6 +25,17 @@ local function pushDialog(player, text, kind)
 	if r then r:FireClient(player, text, kind or "dialog") end
 end
 
+function StoryService.PushLine(player, category, kind)
+	if not player then return end
+	pushDialog(player, pickLine(category), kind or category)
+end
+
+function StoryService.BroadcastLine(category, kind)
+	for _, plr in ipairs(Players:GetPlayers()) do
+		StoryService.PushLine(plr, category, kind)
+	end
+end
+
 function StoryService.GetCurrentMission()
 	return Story.Missions[StoryService.CurrentMissionIndex]
 end

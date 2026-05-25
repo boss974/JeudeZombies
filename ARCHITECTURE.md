@@ -1,6 +1,27 @@
 # Architecture - Jeu de Zombies
 
-Le projet est séparé en deux produits partageant la même logique de gameplay.
+Le projet est séparé en plusieurs surfaces, mais doit garder un coeur de design
+commun : missions, vagues, zombies, armes, défenses, économie et narration.
+
+## 0. Direction cible
+
+```txt
+Design commun
+  Missions touristiques
+  Zombies / boss
+  Armes / defenses
+  Economie / upgrades
+  Dialogues / blagues
+
+Roblox
+  Coop, publication rapide, serveur autoritaire
+
+Web
+  Prototype solo, equilibrage, demo partageable
+
+Mobile natif futur
+  Godot ou Unity apres validation du fun
+```
 
 ## 1. Version Roblox
 
@@ -14,6 +35,8 @@ ServerScriptService/
   Services/
     WaveService.lua
     ZombieService.lua
+    WeaponService.lua
+    DefenseService.lua
     RewardService.lua
     PlayerDataService.lua
     ShopService.lua
@@ -38,6 +61,8 @@ Tout ce qui est important reste côté serveur :
 
 - spawn zombies
 - dégâts
+- tirs et cooldowns
+- placement et cout des defenses
 - score
 - coins
 - sauvegarde
@@ -68,7 +93,8 @@ web/
         GameScene.js
         Player.js
         Zombie.js
-        WaveManager.js
+      WaveManager.js
+      Defense.js
       ui/
         hud.js
         menu.js
@@ -96,6 +122,8 @@ Les deux versions doivent partager les mêmes concepts :
 - score
 - coins
 - boss
+- armes
+- defenses
 - progression
 
 ## 4. Sécurité

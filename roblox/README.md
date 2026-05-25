@@ -41,6 +41,15 @@ StarterGui/
 4. Créer `Workspace.Arena.ZombieSpawns` avec quelques Parts (anchored) marquant les points de spawn.
 5. Lancer "Play" : la vague 1 démarre automatiquement quand un joueur est présent.
 
+## Contrôles prototype
+
+- Clic gauche : tirer vers la souris (validé côté serveur).
+- `1` : sélectionner une tourelle.
+- `2` : sélectionner une barricade.
+- Clic droit : poser la défense sélectionnée si le joueur a assez de coins.
+
+Le joueur démarre avec quelques coins pour tester rapidement la pose de défense.
+
 ## Quand passer à Rojo
 
 Quand le projet dépasse ~15 fichiers, installer Rojo et utiliser `default.project.json` pour synchroniser ce dossier directement vers Studio (cf. `DEPENDENCIES.md`).
