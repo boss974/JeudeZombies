@@ -25,16 +25,45 @@ ville après ville. Le ton garde une note d'espoir, jamais de désespoir.
 
 ## 3. Identité audio-visuelle
 
+### Palette officielle Réunion (V1.0)
+
+Inspirée du drapeau non-officiel mais reconnu de La Réunion (volcan rayonnant)
+et de l'écosystème tropical local.
+
+| Rôle | Nom | Hex | RGB | Usage |
+|---|---|---|---|---|
+| Volcan | Orange Fournaise | `#ff6b35` | 255,107,53 | Titres, accents, lave, glow |
+| Drapeau (rouge) | Rouge Flamboyant | `#e94e1b` | 233,78,27 | Boutons primaires, alertes |
+| Drapeau (jaune) | Jaune Cannelle | `#f4b942` | 244,185,66 | Mission, panneaux, soleil |
+| Drapeau (bleu) | Bleu Lagon | `#0099b8` | 0,153,184 | Eau, océan, surlignage |
+| Tropical | Vert Émeraude | `#1c8b3e` | 28,139,62 | Forêt, vague nettoyée |
+| Volcanique | Sable Noir | `#2d2d2d` | 45,45,45 | Backgrounds, ombres |
+| Pluie | Bleu Pluie | `#5d8fa8` | 93,143,168 | États froids, info |
+| Hibiscus | Rose Hibiscus | `#e91e63` | 233,30,99 | Cosmétique, fleurs |
+| Or chaud | Or Lampions | `#ffe6a0` | 255,230,160 | Lumière ville libérée |
+| Néon rouge | Néon Alerte | `#ff3030` | 255,48,48 | Ville zombie, danger |
+
+### Atmosphères
+
 | Aspect | Choix |
 |---|---|
-| Palette dominante | Orange volcanique (#ff7a3a, #e25a26, #ff8b4a) sur sombre (#0a0a0a) |
-| Lumière par ville libérée | Or chaud (#ffe6a0) |
-| Lumière par ville zombie | Néon rouge (#ff3030) |
 | Atmosphère ciel | Aube apocalyptique, ClockTime 5.5, fog 200-800 |
-| Particules dominantes | Cendre orange, poussière, brume |
+| Particules dominantes | Cendre orange, poussière volcanique, brume des cirques |
 | Typo titres | GothamBold (Roblox) / "Segoe UI", system-ui (web) |
 | Typo corps | Gotham (Roblox) / "Segoe UI" (web) |
 | Forme zombies | Cartoon stylisé : cubes + sphères, jamais réaliste |
+
+### Symboles iconiques Réunion
+
+À placer dans le jeu pour ancrer l'identité visuelle :
+
+- **Hibiscus** (fleur emblématique tropicale) — coloration ville libérée
+- **Flamboyant** (arbre à fleurs rouges) — décor île
+- **Palmier / cocotier** — pourtour côtier
+- **Volcan en éruption** — Piton de la Fournaise, déjà présent
+- **Vague océanique turquoise** — couleur eau
+- **Sable noir** — plages volcaniques sud
+- **Lampions créoles** — chaleur festive, sécurité
 
 **Interdits visuels** : sang, démembrement, expressions de douleur, cris
 réalistes excessifs, horreur psychologique.

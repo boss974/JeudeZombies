@@ -1,10 +1,49 @@
+/* =============================================================================
+ * L'Éveil de la Fournaise — Habillage tropical
+ * Palette officielle : drapeau rayonnant + écosystème volcanique de La Réunion.
+ * Aucune dépendance externe (police système, SVG inline, animations CSS pures).
+ * ============================================================================= */
+
+:root {
+  /* Palette officielle (cf. GAME_KNOWLEDGE §3) */
+  --c-fournaise:   #ff6b35;   /* Orange volcan — titres, lave */
+  --c-flamboyant:  #e94e1b;   /* Rouge drapeau — boutons */
+  --c-cannelle:    #f4b942;   /* Jaune cannelle — mission, soleil */
+  --c-lagon:       #0099b8;   /* Bleu lagon — eau */
+  --c-emeraude:    #1c8b3e;   /* Vert tropical — forêt, victoire */
+  --c-sable-noir:  #2d2d2d;   /* Sable volcanique — fond */
+  --c-pluie:       #5d8fa8;   /* Bleu pluie — info */
+  --c-hibiscus:    #e91e63;   /* Rose hibiscus — cosmétique */
+  --c-lampions:    #ffe6a0;   /* Or chaud — lumière ville libérée */
+  --c-alerte:      #ff3030;   /* Néon alerte — danger */
+
+  /* Dérivés ombrés */
+  --c-nuit:        #1a0d0a;   /* Nuit volcanique */
+  --c-cendre:      #4a2c1a;   /* Cendre orange profonde */
+  --c-ecume:       #b8e8f0;   /* Écume claire de vague */
+  --c-mer-profonde:#054a5a;   /* Mer profonde */
+  --c-or-fonce:    #b8902c;   /* Or vieilli, bordures */
+
+  /* Ombres et glow */
+  --glow-lave:     0 0 30px rgba(255, 107, 53, 0.55), 0 0 60px rgba(255, 107, 53, 0.25);
+  --glow-or:       0 0 18px rgba(255, 230, 160, 0.45);
+  --ombre-bois:    0 6px 22px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* ----------------------------------------------------------------------------
+ * Reset doux
+ * ---------------------------------------------------------------------------- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
   height: 100%;
-  background: #0a0a0a;
-  color: #e8e8e8;
-  font-family: "Segoe UI", system-ui, sans-serif;
+  /* Fond global = nuit volcanique (au cas où le canvas ne couvre pas tout) */
+  background:
+    radial-gradient(ellipse at 50% 110%, var(--c-mer-profonde) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% -10%, rgba(255, 107, 53, 0.18) 0%, transparent 60%),
+    var(--c-nuit);
+  color: #f3ead6;
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
   overflow: hidden;
 }
 
@@ -17,9 +56,15 @@ html, body {
   justify-content: center;
 }
 
+/* Le canvas du jeu — on garde son aspect intact, on l'encadre juste */
 #game {
   background: #1a1a1a;
-  border: 2px solid #333;
+  border: 3px solid var(--c-or-fonce);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255, 230, 160, 0.18),
+    var(--ombre-bois),
+    inset 0 0 60px rgba(255, 107, 53, 0.08);
   max-width: 100%;
   max-height: 100%;
   image-rendering: pixelated;
@@ -28,90 +73,256 @@ html, body {
 
 .hidden { display: none !important; }
 
-/* HUD */
+/* ============================================================================
+ * Décor de fond — SVG inline (silhouette île + vagues + ciel volcanique)
+ * Ces décors sont posés AUTOUR du canvas, jamais dessus.
+ * ============================================================================ */
+
+.decor-sky {
+  /* Halo orange volcanique tout en haut */
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% -20%, rgba(255, 107, 53, 0.45) 0%, transparent 50%),
+    radial-gradient(ellipse at 20% 0%, rgba(244, 185, 66, 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 80% 0%, rgba(233, 78, 27, 0.18) 0%, transparent 45%);
+  animation: sky-pulse 11s ease-in-out infinite alternate;
+}
+
+@keyframes sky-pulse {
+  from { opacity: 0.85; }
+  to   { opacity: 1.0; }
+}
+
+.decor-island {
+  /* Silhouette de l'île de La Réunion stylisée en bas du menu */
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(95vw, 1100px);
+  height: auto;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.55;
+}
+
+.decor-waves {
+  /* Bande de vagues animées en bas */
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 80px;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.decor-waves svg {
+  width: 200%;
+  height: 100%;
+  animation: wave-slide 14s linear infinite;
+}
+
+@keyframes wave-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.decor-hibiscus {
+  /* Hibiscus rotatif en haut à droite (intro & menu) */
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  width: 110px;
+  height: 110px;
+  pointer-events: none;
+  z-index: 2;
+  animation: hibiscus-spin 28s linear infinite;
+  filter: drop-shadow(0 4px 12px rgba(233, 30, 99, 0.35));
+}
+
+@keyframes hibiscus-spin {
+  from { transform: rotate(-6deg); }
+  to   { transform: rotate(354deg); }
+}
+
+.decor-palm-left, .decor-palm-right {
+  position: absolute;
+  bottom: 0;
+  width: 180px;
+  height: auto;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.85;
+  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.45));
+}
+.decor-palm-left  { left: 12px;  transform: rotate(-3deg); }
+.decor-palm-right { right: 12px; transform: scaleX(-1) rotate(-3deg); }
+
+.decor-volcano {
+  /* Petit pictogramme volcan animé (lave qui pulse) */
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  width: 92px;
+  height: 92px;
+  pointer-events: none;
+  z-index: 2;
+  filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.55));
+  animation: volcano-pulse 3.4s ease-in-out infinite;
+}
+
+@keyframes volcano-pulse {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 0 10px rgba(255, 107, 53, 0.55)); }
+  50%      { transform: scale(1.05); filter: drop-shadow(0 0 22px rgba(255, 107, 53, 0.9)); }
+}
+
+.decor-lampions {
+  /* Guirlande de lampions tout en haut du menu */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ============================================================================
+ * HUD — panneau créole en bois doré
+ * ============================================================================ */
 #hud {
   position: absolute;
-  top: 16px;
-  left: 16px;
-  background: rgba(0, 0, 0, 0.55);
-  padding: 12px 16px;
-  border-radius: 8px;
-  border: 1px solid #2a2a2a;
-  min-width: 220px;
+  top: 18px;
+  left: 18px;
+  background:
+    linear-gradient(180deg,
+      rgba(45, 25, 15, 0.92) 0%,
+      rgba(20, 10, 8, 0.92) 100%);
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 2px solid var(--c-or-fonce);
+  box-shadow:
+    var(--ombre-bois),
+    inset 0 0 0 1px rgba(255, 230, 160, 0.25),
+    inset 0 0 30px rgba(255, 107, 53, 0.08);
+  min-width: 240px;
   font-size: 14px;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  z-index: 4;
 }
 
 .hud-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3px 0;
+  padding: 4px 0;
+  gap: 12px;
+}
+
+.hud-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .hud-label {
-  color: #888;
+  color: var(--c-cannelle);
   margin-right: 12px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .hud-mission {
-  border-bottom: 1px solid #2a2a2a;
-  padding-bottom: 6px;
+  border-bottom: 1px solid var(--c-or-fonce);
+  padding-bottom: 8px;
   margin-bottom: 4px;
 }
 .hud-mission span:last-child {
-  color: #ff9b4a;
+  color: var(--c-fournaise);
   font-weight: bold;
+  text-shadow: 0 0 8px rgba(255, 107, 53, 0.5);
 }
 
 .hud-record {
-  border-top: 1px solid #2a2a2a;
+  border-top: 1px solid var(--c-or-fonce);
   margin-top: 4px;
-  padding-top: 6px;
-  color: #d4af37;
+  padding-top: 8px;
+  color: var(--c-lampions);
+}
+.hud-record span:last-child {
+  text-shadow: var(--glow-or);
 }
 
 .hp-bar {
-  width: 120px;
-  height: 12px;
-  background: #2a2a2a;
-  border-radius: 6px;
+  width: 130px;
+  height: 14px;
+  background: var(--c-sable-noir);
+  border-radius: 7px;
   overflow: hidden;
+  border: 1px solid var(--c-or-fonce);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 #hud-hp-fill {
   height: 100%;
-  background: linear-gradient(90deg, #d92020, #f25555);
+  background: linear-gradient(90deg,
+    var(--c-emeraude) 0%,
+    var(--c-cannelle) 55%,
+    var(--c-flamboyant) 100%);
   width: 100%;
-  transition: width 0.15s ease-out;
+  transition: width 0.18s ease-out;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Dialog narratif */
+/* ============================================================================
+ * Dialogue narratif (bas d'écran)
+ * ============================================================================ */
 #dialog {
   position: absolute;
-  bottom: 8%;
+  bottom: 9%;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(0, 0, 0, 0.6);
-  padding: 12px 28px;
-  border-radius: 10px;
-  border: 1px solid #c8552a;
+  background:
+    linear-gradient(180deg,
+      rgba(45, 25, 15, 0.94) 0%,
+      rgba(15, 8, 5, 0.94) 100%);
+  padding: 14px 30px;
+  border-radius: 14px;
+  border: 2px solid var(--c-fournaise);
+  box-shadow:
+    var(--ombre-bois),
+    0 0 22px rgba(255, 107, 53, 0.35),
+    inset 0 0 0 1px rgba(255, 230, 160, 0.2);
   z-index: 5;
-  max-width: 600px;
+  max-width: 680px;
   text-align: center;
-  animation: dialog-fade 0.4s ease-out;
+  animation: dialog-fade 0.45s ease-out;
 }
 #dialog p {
-  color: #ffe6a0;
+  color: var(--c-lampions);
   font-size: 18px;
   font-weight: 500;
+  line-height: 1.4;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 @keyframes dialog-fade {
-  from { opacity: 0; transform: translate(-50%, 10px); }
+  from { opacity: 0; transform: translate(-50%, 14px); }
   to   { opacity: 1; transform: translate(-50%, 0); }
 }
 
-/* Menus (intro, menu, gameover, victory) */
+/* ============================================================================
+ * Écrans plein écran : intro, menu, gameover, victory
+ * ============================================================================ */
 #intro, #menu, #gameover, #victory {
   position: absolute;
   inset: 0;
@@ -122,112 +333,304 @@ html, body {
   text-align: center;
   z-index: 10;
   padding: 40px;
+  overflow: hidden;
 }
 
+/* INTRO : ciel volcanique au lever */
 #intro {
-  background: radial-gradient(ellipse at center, #2a0f0a 0%, #0a0608 70%);
-  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 50% 110%, var(--c-mer-profonde) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 20%, rgba(255, 107, 53, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg,
+      #1a0608 0%,
+      #2a0f0a 30%,
+      #3a1a0f 60%,
+      #1a0608 100%);
 }
 
 .intro-haze {
   position: absolute;
   inset: -50%;
-  background: radial-gradient(circle, rgba(255, 140, 50, 0.18) 0%, transparent 60%);
+  background:
+    radial-gradient(circle, rgba(255, 140, 50, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 30% 40%, rgba(244, 185, 66, 0.12) 0%, transparent 50%);
   animation: haze 9s ease-in-out infinite alternate;
   pointer-events: none;
 }
 @keyframes haze {
-  from { transform: translate(-5%, 5%); opacity: 0.6; }
+  from { transform: translate(-5%, 5%); opacity: 0.65; }
   to   { transform: translate(8%, -3%); opacity: 1; }
 }
 
-#menu, #gameover, #victory {
-  background: rgba(0, 0, 0, 0.78);
+/* MENU : lagon vers volcan, île au loin */
+#menu {
+  background:
+    /* Ciel volcanique */
+    linear-gradient(180deg,
+      #2a0d0a 0%,
+      #4a1f15 22%,
+      #6a2a18 38%,
+      #8a3a20 52%,
+      /* Bande horizon */
+      rgba(244, 185, 66, 0.4) 60%,
+      /* Lagon */
+      rgba(0, 153, 184, 0.6) 70%,
+      rgba(0, 153, 184, 0.85) 85%,
+      var(--c-mer-profonde) 100%);
 }
 
+/* GAMEOVER : ambiance cendre froide */
+#gameover {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(233, 78, 27, 0.25) 0%, transparent 60%),
+    linear-gradient(180deg,
+      #1a0608 0%,
+      #2d2d2d 70%,
+      #1a0608 100%);
+}
+
+/* VICTORY : aube verte/dorée, ville libérée */
+#victory {
+  background:
+    radial-gradient(ellipse at 50% 110%, rgba(28, 139, 62, 0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 20%, rgba(255, 230, 160, 0.35) 0%, transparent 55%),
+    linear-gradient(180deg,
+      #2a1a08 0%,
+      #4a3a18 30%,
+      #6a5a28 55%,
+      #2a4a28 100%);
+}
+
+/* ============================================================================
+ * Typographie des écrans
+ * ============================================================================ */
 #intro h1, #menu h1, #gameover h2, #victory h2 {
-  font-size: 56px;
+  font-size: clamp(36px, 5.5vw, 64px);
   letter-spacing: 2px;
-  color: #ff7a3a;
-  text-shadow: 0 0 28px rgba(255, 122, 58, 0.55);
-  margin-bottom: 8px;
+  color: var(--c-fournaise);
+  text-shadow:
+    0 0 12px rgba(255, 107, 53, 0.7),
+    0 0 32px rgba(255, 107, 53, 0.45),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+  margin-bottom: 10px;
   position: relative;
-  z-index: 1;
+  z-index: 3;
+  font-weight: 800;
+  /* Petite ondulation type "lave qui pulse" */
+  animation: lava-pulse 3.8s ease-in-out infinite;
+}
+
+@keyframes lava-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 12px rgba(255, 107, 53, 0.7),
+      0 0 32px rgba(255, 107, 53, 0.45),
+      0 3px 0 rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    text-shadow:
+      0 0 18px rgba(255, 107, 53, 0.95),
+      0 0 50px rgba(244, 185, 66, 0.6),
+      0 3px 0 rgba(0, 0, 0, 0.6);
+  }
 }
 
 #intro .tag, #menu .tag {
-  color: #aaa;
+  color: var(--c-lampions);
   margin-bottom: 28px;
   font-style: italic;
+  font-size: clamp(14px, 1.4vw, 18px);
+  letter-spacing: 1px;
   position: relative;
-  z-index: 1;
+  z-index: 3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 #intro-text {
-  max-width: 640px;
-  color: #e0d6c4;
-  line-height: 1.7;
-  font-size: 17px;
-  margin-bottom: 32px;
+  max-width: 660px;
+  color: #f3ead6;
+  line-height: 1.75;
+  font-size: clamp(15px, 1.4vw, 17px);
+  margin-bottom: 36px;
   white-space: pre-line;
   position: relative;
-  z-index: 1;
+  z-index: 3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  /* Panneau lisible sur fond chaud */
+  background: linear-gradient(180deg,
+    rgba(20, 10, 5, 0.4),
+    rgba(20, 10, 5, 0.55));
+  padding: 22px 30px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 230, 160, 0.18);
 }
 
 .mission-preview {
-  color: #ffa860;
-  font-size: 22px;
+  color: var(--c-cannelle);
+  font-size: clamp(18px, 2vw, 24px);
   font-weight: bold;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 3;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
 }
 .mission-city {
-  color: #d4af37;
-  margin-bottom: 24px;
+  color: var(--c-lampions);
+  margin-bottom: 26px;
+  position: relative;
+  z-index: 3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 #menu .hint, #gameover p, #victory p {
-  color: #bbb;
+  color: #e8dbb6;
   margin-top: 8px;
   font-size: 15px;
+  position: relative;
+  z-index: 3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 #menu .record {
-  margin-top: 24px;
-  color: #d4af37;
+  margin-top: 26px;
+  color: var(--c-lampions);
+  font-weight: bold;
+  text-shadow: var(--glow-or);
 }
 
 .reset-link {
-  margin-top: 18px;
+  margin-top: 20px;
   font-size: 12px;
+  position: relative;
+  z-index: 3;
 }
 .reset-link a {
-  color: #666;
+  color: rgba(255, 230, 160, 0.55);
   text-decoration: underline;
+  transition: color 0.2s;
 }
-.reset-link a:hover { color: #aaa; }
+.reset-link a:hover { color: var(--c-cannelle); }
 
-#victory h2 { color: #6ed87a; text-shadow: 0 0 24px rgba(110, 216, 122, 0.5); }
-#victory-flavor { font-style: italic; color: #cdebcf; margin-bottom: 18px; }
-#go-flavor { font-style: italic; color: #d4a8a8; margin-bottom: 18px; }
+#victory h2 {
+  color: var(--c-emeraude);
+  text-shadow:
+    0 0 12px rgba(28, 139, 62, 0.7),
+    0 0 32px rgba(255, 230, 160, 0.4),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+  animation: lava-pulse 3.8s ease-in-out infinite;
+}
+#victory-flavor { font-style: italic; color: var(--c-lampions); margin-bottom: 20px; }
+#go-flavor      { font-style: italic; color: #f0c0b0;          margin-bottom: 20px; }
 
+/* ============================================================================
+ * Boutons cartoon — laque rouge flamboyant + or
+ * ============================================================================ */
 button {
-  background: linear-gradient(180deg, #ff8b4a, #e25a26);
-  color: #1a0f08;
+  background: linear-gradient(180deg,
+    var(--c-fournaise) 0%,
+    var(--c-flamboyant) 50%,
+    #b03812 100%);
+  color: #fff;
   font-weight: bold;
-  font-size: 18px;
-  padding: 14px 40px;
-  border: none;
-  border-radius: 6px;
+  font-size: 19px;
+  letter-spacing: 1px;
+  padding: 15px 44px;
+  border: 2px solid var(--c-lampions);
+  border-radius: 10px;
   cursor: pointer;
-  margin-top: 12px;
+  margin-top: 14px;
   position: relative;
-  z-index: 1;
-  box-shadow: 0 4px 18px rgba(226, 90, 38, 0.35);
-  transition: transform 0.1s, box-shadow 0.15s;
+  z-index: 3;
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    0 0 12px rgba(255, 230, 160, 0.4);
+  box-shadow:
+    0 6px 22px rgba(226, 90, 38, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 230, 160, 0.45),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s, box-shadow 0.18s, filter 0.15s;
+  text-transform: uppercase;
+  font-family: "Segoe UI", "Trebuchet MS", system-ui, sans-serif;
 }
 
 button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 6px 24px rgba(255, 140, 70, 0.5);
+  transform: translateY(-2px) scale(1.03);
+  filter: brightness(1.08);
+  box-shadow:
+    0 10px 30px rgba(255, 140, 70, 0.55),
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 230, 160, 0.55),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
 }
-button:active { transform: scale(0.98); }
+
+button:active {
+  transform: translateY(1px) scale(0.99);
+  filter: brightness(0.95);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--c-cannelle);
+  outline-offset: 3px;
+}
+
+/* Variante vert émeraude (victoire) */
+#btn-next-mission {
+  background: linear-gradient(180deg,
+    #2ab84e 0%,
+    var(--c-emeraude) 50%,
+    #12642b 100%);
+  box-shadow:
+    0 6px 22px rgba(28, 139, 62, 0.45),
+    0 2px 6px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 230, 160, 0.4),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.25);
+}
+#btn-next-mission:hover {
+  box-shadow:
+    0 10px 30px rgba(46, 200, 90, 0.6),
+    0 3px 10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 230, 160, 0.5),
+    inset 0 -3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================================
+ * Responsive — garde la lisibilité 1280x720 et plus petit
+ * ============================================================================ */
+@media (max-width: 1280px) {
+  .decor-hibiscus { width: 80px; height: 80px; top: 16px; right: 20px; }
+  .decor-volcano  { width: 70px; height: 70px; }
+  .decor-palm-left, .decor-palm-right { width: 130px; }
+  #hud { min-width: 210px; padding: 12px 14px; font-size: 13px; }
+  #intro-text { padding: 18px 22px; }
+}
+
+@media (max-width: 900px) {
+  .decor-palm-left, .decor-palm-right { display: none; }
+  .decor-hibiscus { width: 60px; height: 60px; }
+  #intro h1, #menu h1, #gameover h2, #victory h2 { font-size: 36px; }
+  button { padding: 12px 32px; font-size: 16px; }
+}
+
+/* Petit motif "cendres qui tombent" subtil sur intro */
+.ash-fall {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background-image:
+    radial-gradient(1.5px 1.5px at 20% 30%, rgba(255, 107, 53, 0.7), transparent),
+    radial-gradient(1.5px 1.5px at 70% 50%, rgba(244, 185, 66, 0.6), transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255, 230, 160, 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 85% 20%, rgba(255, 107, 53, 0.5), transparent),
+    radial-gradient(1px 1px at 10% 80%, rgba(244, 185, 66, 0.5), transparent),
+    radial-gradient(1.2px 1.2px at 55% 15%, rgba(255, 230, 160, 0.5), transparent);
+  background-size: 400px 400px;
+  background-repeat: repeat;
+  animation: ash-drift 22s linear infinite;
+  opacity: 0.85;
+}
+@keyframes ash-drift {
+  from { background-position: 0 0; }
+  to   { background-position: -400px 400px; }
+}
