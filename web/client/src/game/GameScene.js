@@ -40,6 +40,9 @@ export class GameScene {
 
   start() { this.reset(); }
 
+  pause() { this.state = STATE.PAUSED; }
+  resume() { this.state = STATE.PLAYING; }
+
   _loop(t) {
     const dt = Math.min(0.05, (t - this.lastTime) / 1000 || 0);
     this.lastTime = t;
@@ -100,9 +103,14 @@ export class GameScene {
       }
     }
 
-    // Bonus fin de vague (déclenché une fois quand status passe à intermission)
+    // Évènements de vague pour la couche narrative
+    if (this.waveManager.status === "spawning" && this._lastStatus !== "spawning") {
+      this.onWaveStart?.(this.waveManager.wave);
+      if (this.waveManager._pendingBoss) this.onBossWave?.();
+    }
     if (this.waveManager.status === "intermission" && this._lastStatus === "clearing") {
       this.score += CONFIG.scoring.waveClearBonus;
+      this.onWaveCleared?.(this.waveManager.wave);
     }
     this._lastStatus = this.waveManager.status;
 
@@ -177,7 +185,7 @@ export class GameScene {
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.arena.width, y); ctx.stroke();
     }
 
-    if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER) return;
+    if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER && this.state !== STATE.PAUSED) return;
 
     // Particules
     for (const p of this.particles) {

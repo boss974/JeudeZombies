@@ -47,6 +47,8 @@ function WaveService.Start()
 			local isBoss = (n % Config.Wave.BossEveryN == 0)
 			local isMini = (not isBoss) and (n % Config.Wave.MiniBossEveryN == 0)
 			broadcastWave(n, "start")
+			if callbacks.OnWaveStart then callbacks.OnWaveStart(n) end
+			if isBoss and callbacks.OnBossWave then callbacks.OnBossWave() end
 
 			-- Boss/mini en premier spawn
 			if isBoss then

@@ -17,18 +17,27 @@ local ZombieService     = require(Services:WaitForChild("ZombieService"))
 local RewardService     = require(Services:WaitForChild("RewardService"))
 local PlayerDataService = require(Services:WaitForChild("PlayerDataService"))
 local ShopService       = require(Services:WaitForChild("ShopService"))
+local StoryService      = require(Services:WaitForChild("StoryService"))
 
 PlayerDataService.Init()
 ShopService.Init()
 ZombieService.Init()
+StoryService.Init()
 WaveService.Init({
 	OnZombieKilled = function(player, zombieType)
 		RewardService.GiveKillReward(player, zombieType)
+	end,
+	OnWaveStart = function(waveNumber)
+		StoryService.OnWaveStart(waveNumber)
+	end,
+	OnBossWave = function()
+		StoryService.OnBossWave()
 	end,
 	OnWaveCleared = function(waveNumber)
 		for _, plr in ipairs(Players:GetPlayers()) do
 			RewardService.GiveWaveClearBonus(plr)
 		end
+		StoryService.OnWaveCleared(waveNumber)
 		print(("[GameController] Vague %d nettoyée"):format(waveNumber))
 	end,
 })

@@ -17,5 +17,7 @@ export const ENEMY_TYPE = {
 
 export const STORAGE_KEYS = {
   BEST_SCORE: "zombies.bestScore",
-  TOTAL_COINS: "zombies.totalCoins"
+  TOTAL_COINS: "zombies.totalCoins",
+  STORY_MISSION_INDEX: "zombies.storyMission",
+  STORY_INTRO_SEEN: "zombies.storyIntroSeen"
 };

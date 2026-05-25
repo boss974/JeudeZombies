@@ -37,8 +37,9 @@ html, body {
   padding: 12px 16px;
   border-radius: 8px;
   border: 1px solid #2a2a2a;
-  min-width: 200px;
+  min-width: 220px;
   font-size: 14px;
+  backdrop-filter: blur(4px);
 }
 
 .hud-row {
@@ -53,7 +54,22 @@ html, body {
   margin-right: 12px;
 }
 
-.hud-record { border-top: 1px solid #2a2a2a; margin-top: 4px; padding-top: 6px; color: #d4af37; }
+.hud-mission {
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+.hud-mission span:last-child {
+  color: #ff9b4a;
+  font-weight: bold;
+}
+
+.hud-record {
+  border-top: 1px solid #2a2a2a;
+  margin-top: 4px;
+  padding-top: 6px;
+  color: #d4af37;
+}
 
 .hp-bar {
   width: 120px;
@@ -70,35 +86,108 @@ html, body {
   transition: width 0.15s ease-out;
 }
 
-/* Menu */
-#menu, #gameover {
+/* Dialog narratif */
+#dialog {
+  position: absolute;
+  bottom: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.6);
+  padding: 12px 28px;
+  border-radius: 10px;
+  border: 1px solid #c8552a;
+  z-index: 5;
+  max-width: 600px;
+  text-align: center;
+  animation: dialog-fade 0.4s ease-out;
+}
+#dialog p {
+  color: #ffe6a0;
+  font-size: 18px;
+  font-weight: 500;
+}
+@keyframes dialog-fade {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Menus (intro, menu, gameover, victory) */
+#intro, #menu, #gameover, #victory {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.72);
   text-align: center;
   z-index: 10;
+  padding: 40px;
 }
 
-#menu h1, #gameover h2 {
+#intro {
+  background: radial-gradient(ellipse at center, #2a0f0a 0%, #0a0608 70%);
+  overflow: hidden;
+}
+
+.intro-haze {
+  position: absolute;
+  inset: -50%;
+  background: radial-gradient(circle, rgba(255, 140, 50, 0.18) 0%, transparent 60%);
+  animation: haze 9s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes haze {
+  from { transform: translate(-5%, 5%); opacity: 0.6; }
+  to   { transform: translate(8%, -3%); opacity: 1; }
+}
+
+#menu, #gameover, #victory {
+  background: rgba(0, 0, 0, 0.78);
+}
+
+#intro h1, #menu h1, #gameover h2, #victory h2 {
   font-size: 56px;
   letter-spacing: 2px;
-  color: #f25555;
-  text-shadow: 0 0 18px rgba(242, 85, 85, 0.45);
+  color: #ff7a3a;
+  text-shadow: 0 0 28px rgba(255, 122, 58, 0.55);
   margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
 }
 
-#menu .tag {
-  color: #888;
+#intro .tag, #menu .tag {
+  color: #aaa;
+  margin-bottom: 28px;
+  font-style: italic;
+  position: relative;
+  z-index: 1;
+}
+
+#intro-text {
+  max-width: 640px;
+  color: #e0d6c4;
+  line-height: 1.7;
+  font-size: 17px;
   margin-bottom: 32px;
+  white-space: pre-line;
+  position: relative;
+  z-index: 1;
 }
 
-#menu .hint, #gameover p {
+.mission-preview {
+  color: #ffa860;
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.mission-city {
+  color: #d4af37;
+  margin-bottom: 24px;
+}
+
+#menu .hint, #gameover p, #victory p {
   color: #bbb;
-  margin-top: 12px;
+  margin-top: 8px;
   font-size: 15px;
 }
 
@@ -107,18 +196,38 @@ html, body {
   color: #d4af37;
 }
 
+.reset-link {
+  margin-top: 18px;
+  font-size: 12px;
+}
+.reset-link a {
+  color: #666;
+  text-decoration: underline;
+}
+.reset-link a:hover { color: #aaa; }
+
+#victory h2 { color: #6ed87a; text-shadow: 0 0 24px rgba(110, 216, 122, 0.5); }
+#victory-flavor { font-style: italic; color: #cdebcf; margin-bottom: 18px; }
+#go-flavor { font-style: italic; color: #d4a8a8; margin-bottom: 18px; }
+
 button {
-  background: #f25555;
-  color: #0a0a0a;
+  background: linear-gradient(180deg, #ff8b4a, #e25a26);
+  color: #1a0f08;
   font-weight: bold;
   font-size: 18px;
-  padding: 12px 36px;
+  padding: 14px 40px;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin-top: 8px;
-  transition: transform 0.1s, background 0.15s;
+  margin-top: 12px;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 4px 18px rgba(226, 90, 38, 0.35);
+  transition: transform 0.1s, box-shadow 0.15s;
 }
 
-button:hover { background: #ff7070; transform: scale(1.04); }
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 24px rgba(255, 140, 70, 0.5);
+}
 button:active { transform: scale(0.98); }
