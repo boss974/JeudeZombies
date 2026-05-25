@@ -17,6 +17,7 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
+*.rbxl.lock
 
 # Logs
 *.log
