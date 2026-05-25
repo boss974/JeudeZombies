@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Jeu de Zombies - Prototype Web</title>
+  <link rel="stylesheet" href="src/ui/style.css" />
+</head>
+<body>
+  <div id="app">
+    <canvas id="game" width="960" height="540"></canvas>
+
+    <div id="hud" class="hidden">
+      <div class="hud-row">
+        <span class="hud-label">Vague</span>
+        <span id="hud-wave">1</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">Score</span>
+        <span id="hud-score">0</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">Coins</span>
+        <span id="hud-coins">0</span>
+      </div>
+      <div class="hud-row">
+        <span class="hud-label">Vie</span>
+        <div class="hp-bar"><div id="hud-hp-fill"></div></div>
+      </div>
+      <div class="hud-row hud-record">
+        <span class="hud-label">Best</span>
+        <span id="hud-best">0</span>
+      </div>
+    </div>
+
+    <div id="menu">
+      <h1>Jeu de Zombies</h1>
+      <p class="tag">Prototype Web Solo - V0.7</p>
+      <button id="btn-start">Jouer</button>
+      <p class="hint">ZQSD ou Flèches pour bouger - Souris pour viser et tirer</p>
+      <p class="record">Meilleur score : <span id="menu-best">0</span></p>
+    </div>
+
+    <div id="gameover" class="hidden">
+      <h2>Vous êtes mort</h2>
+      <p>Vague atteinte : <span id="go-wave">1</span></p>
+      <p>Score : <span id="go-score">0</span></p>
+      <p>Coins gagnés : <span id="go-coins">0</span></p>
+      <button id="btn-restart">Rejouer</button>
+    </div>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
