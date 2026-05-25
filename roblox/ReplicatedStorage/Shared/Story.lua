@@ -135,10 +135,161 @@ Story.CityLore = {
 -- DIALOGUES (messages courts, affichés en HUD pendant les vagues)
 -- ============================================================================
 Story.Lines = {
-	waveStart    = { "Ils arrivent...", "Encerclement en cours.", "Tenez la ligne !", "Une vague approche." },
-	waveCleared  = { "Vague repoussée !", "Bien joué.", "Reprends ton souffle.", "Ils reculent." },
-	bossWarning  = { "Quelque chose de plus gros approche.", "Le sol tremble.", "Boss en vue !" },
-	cityCleared  = { "Ville libérée !", "Une lumière revient.", "La Réunion respire un peu plus." },
+	waveStart = {
+		"Ils arrivent...",
+		"Encerclement en cours.",
+		"Tenez la ligne !",
+		"Une vague approche.",
+		"Aller marmaille, prépare-toi !",
+		"Reste près du portail.",
+		"Lentement, ils montent depuis la mer.",
+	},
+	waveCleared = {
+		"Vague repoussée !",
+		"Bien joué.",
+		"Reprends ton souffle.",
+		"Ils reculent.",
+		"Bondieu, on respire un peu.",
+		"Une de plus.",
+		"Encore solide.",
+	},
+	bossWarning = {
+		"Quelque chose de plus gros approche.",
+		"Le sol tremble.",
+		"Boss en vue !",
+		"L'air pèse plus lourd, soudain.",
+		"Tiens bon...",
+	},
+	cityCleared = {
+		"Ville libérée !",
+		"Une lumière revient.",
+		"La Réunion respire un peu plus.",
+		"Les lampions se rallument.",
+		"Un cœur de plus qui bat sur l'île.",
+	},
+	playerHit = {
+		"Aïe.",
+		"Soigne-toi vite.",
+		"Recule un peu.",
+		"Ils ne lâchent pas.",
+	},
+	lowHp = {
+		"Il faut tenir...",
+		"Mi-èm-a-ou, courage !",
+		"Plus que quelques secondes.",
+		"Pas maintenant, pas comme ça.",
+	},
+	missionStart = {
+		"L'aube se lève sur la mission.",
+		"On y va.",
+		"Tu sais ce qu'il te reste à faire.",
+	},
+	firstZombieKill = {
+		"Le premier est tombé.",
+		"Ça marche.",
+		"Continue comme ça.",
+	},
+	volcanoRumble = {
+		"Le Piton gronde.",
+		"L'air sent le soufre.",
+		"La cendre tombe encore...",
+		"Quelque part, le cratère brille.",
+	},
 }
+
+-- ============================================================================
+-- LIGNES SPÉCIFIQUES PAR VILLE (hook ville → catégorie : tableau de lignes)
+-- Permet aux services serveur de tirer une ligne contextuelle au lieu d'une
+-- ligne générique quand le joueur joue dans cette ville.
+-- ============================================================================
+Story.CityHooks = {
+	["Saint-Denis"] = {
+		missionStart = {
+			"Le Barachois est silencieux. C'est ici que tout commence.",
+			"La Préfecture compte sur toi.",
+		},
+		waveCleared = {
+			"Saint-Denis tient.",
+			"Une lumière s'allume sur le front de mer.",
+		},
+	},
+	["Saint-Paul"] = {
+		missionStart = {
+			"La plage est noire de cendre. Et de pas.",
+			"L'Ouest n'a jamais semblé aussi long.",
+		},
+		waveCleared = {
+			"La baie respire.",
+			"La Buse aurait aimé voir ça.",
+		},
+	},
+	["Saint-Pierre"] = {
+		missionStart = {
+			"Le marché du samedi est vide. Réveille-le.",
+			"Le Sud t'attendait.",
+		},
+		waveCleared = {
+			"Saint-Pierre rallume ses terrasses.",
+		},
+	},
+	["Saint-Benoit"] = {
+		missionStart = {
+			"La pluie tombe, mais elle n'éteint pas tout.",
+			"L'Est est dense. Reste prudent.",
+		},
+	},
+	["Cilaos"] = {
+		missionStart = {
+			"1200 mètres au-dessus de la mer. L'air est mince.",
+			"Le cirque protège, mais quelque chose grimpe.",
+		},
+		bossWarning = {
+			"La Roche Merveilleuse vibre. Il descend.",
+			"Une silhouette géante apparaît dans la brume.",
+		},
+		waveCleared = {
+			"Le cirque tient bon.",
+			"Les remparts ont vu pire — et toi aussi maintenant.",
+		},
+	},
+	["Plaine-des-Cafres"] = {
+		missionStart = {
+			"L'odeur de soufre est forte. La route monte.",
+			"Bourg-Murat. Dernière étape avant le cratère.",
+		},
+		volcanoRumble = {
+			"Le Piton n'est plus qu'à un kilomètre.",
+			"Tu sens la chaleur sous tes pieds.",
+		},
+	},
+	["Piton-de-la-Fournaise"] = {
+		missionStart = {
+			"Pas Bellecombe. Au-delà : le Dolomieu.",
+			"Le cratère est devant toi. Et lui aussi.",
+		},
+		bossWarning = {
+			"Le Roi-Cendre se redresse.",
+			"Le sol crache. La cendre tourbillonne.",
+		},
+		cityCleared = {
+			"Le cratère s'éteint.",
+			"L'aube revient sur La Réunion.",
+			"Tu as sauvé l'île.",
+		},
+	},
+}
+
+-- ============================================================================
+-- API : pick une ligne, en priorité depuis CityHooks[city][category], sinon Lines[category]
+-- ============================================================================
+function Story.PickLine(category, city)
+	if city and Story.CityHooks[city] and Story.CityHooks[city][category] then
+		local list = Story.CityHooks[city][category]
+		if #list > 0 then return list[math.random(1, #list)] end
+	end
+	local list = Story.Lines[category]
+	if list and #list > 0 then return list[math.random(1, #list)] end
+	return ""
+end
 
 return Story

@@ -87,6 +87,8 @@ local function buildIntro()
 	corner.Parent = btn
 
 	btn.MouseButton1Click:Connect(function()
+		-- Clic de validation : joue le son "Button" via SoundClient
+		if _G.UISound then _G.UISound.Play("Button") end
 		TweenService:Create(bg, TweenInfo.new(0.8), { BackgroundTransparency = 1 }):Play()
 		TweenService:Create(title, TweenInfo.new(0.4), { TextTransparency = 1 }):Play()
 		TweenService:Create(subtitle, TweenInfo.new(0.4), { TextTransparency = 1 }):Play()
@@ -139,6 +141,8 @@ dialogText.Parent = dialogFrame
 
 local function showDialog(text, kind)
 	dialogText.Text = text
+	-- Tick sonore pour chaque dialogue qui apparaît
+	if _G.UISound then _G.UISound.Play("DialogTick") end
 	if kind == "bossWarning" then
 		dStroke.Color = Color3.fromRGB(255, 30, 30)
 	elseif kind == "cityCleared" or kind == "waveCleared" then

@@ -70,82 +70,32 @@ local root = Instance.new("Folder")
 root.Name = "ReunionIsland"
 root.Parent = Workspace
 
--- ============================================================================
--- OCÉAN
--- ============================================================================
-local ocean = makePart(root, "Ocean", {
-	Size = Vector3.new(2400, 4, 1800),
-	Position = Vector3.new(0, -2, 0),
-	Anchored = true,
-	BrickColor = BrickColor.new("Cyan"),
-	Material = Enum.Material.Water,
-	TopSurface = Enum.SurfaceType.Smooth,
-	Transparency = 0.15,
-})
+-- NOTE : la mer, l'île, les pitons et les cirques sont sculptés en
+-- Roblox Terrain par TerrainBuilder.server.lua qui s'exécute en parallèle.
+-- Ce script ne pose plus que les éléments "objet" (portails, panneaux,
+-- routes, lumières).
 
--- ============================================================================
--- ÎLE PRINCIPALE (forme ovale approchée avec un Cylindre couché)
--- Dimensions réelles : ~63 km E-W x ~50 km N-S → 800 x 640 studs
--- ============================================================================
-local island = makePart(root, "MainLand", {
-	Size = Vector3.new(800, 6, 640),
-	Position = Vector3.new(0, 1, 0),
+-- Glow lumineux au cratère du Piton de la Fournaise (le terrain CrackedLava
+-- ne suffit pas à donner l'effet néon orange)
+makePart(root, "FournaiseGlow", {
+	Size = Vector3.new(14, 2, 14),
+	Position = Vector3.new(180, 58, -20),
 	Anchored = true,
-	BrickColor = BrickColor.new("Bright green"),
-	Material = Enum.Material.Grass,
-	TopSurface = Enum.SurfaceType.Smooth,
-})
--- Arrondir avec des coins (sphères aplaties pour suggérer l'ovale)
-local function addCornerBulge(x, z)
-	makePart(root, "Bulge", {
-		Size = Vector3.new(240, 8, 240),
-		Position = Vector3.new(x, 1, z),
-		Anchored = true,
-		BrickColor = BrickColor.new("Bright green"),
-		Material = Enum.Material.Grass,
-		Shape = Enum.PartType.Cylinder,
-		Orientation = Vector3.new(0, 0, 90),
-	})
-end
-addCornerBulge(-400, 0)
-addCornerBulge( 400, 0)
-
--- ============================================================================
--- RELIEFS : Piton des Neiges (centre, 3070m) + Piton de la Fournaise (est, 2632m)
--- ============================================================================
-local function makeMountain(name, pos, size, color)
-	local m = makePart(root, name, {
-		Size = size,
-		Position = pos,
-		Anchored = true,
-		BrickColor = BrickColor.new(color),
-		Material = Enum.Material.Rock,
-		Shape = Enum.PartType.Ball,
-	})
-	-- Plateau lisse au sommet pour s'y poser
-	makePart(root, name .. "_Cap", {
-		Size = Vector3.new(size.X * 0.3, 2, size.Z * 0.3),
-		Position = pos + Vector3.new(0, size.Y * 0.5 - 1, 0),
-		Anchored = true,
-		BrickColor = BrickColor.new("Quill grey"),
-		Material = Enum.Material.Slate,
-		TopSurface = Enum.SurfaceType.Smooth,
-	})
-	return m
-end
-local pitonNeiges = makeMountain("PitonDesNeiges", Vector3.new(-40, 30, -40), Vector3.new(120, 80, 120), "Medium stone grey")
-local pitonFournaise = makeMountain("PitonDeLaFournaise", Vector3.new(180, 25, -20), Vector3.new(100, 60, 100), "Really red")
-
--- Cratère lumineux pour la Fournaise (volcan actif)
-makePart(root, "FournaiseCrater", {
-	Size = Vector3.new(20, 2, 20),
-	Position = Vector3.new(180, 55, -20),
-	Anchored = true,
+	CanCollide = false,
 	BrickColor = BrickColor.new("Neon orange"),
 	Material = Enum.Material.Neon,
 	Shape = Enum.PartType.Cylinder,
 	Orientation = Vector3.new(0, 0, 90),
+	Transparency = 0.2,
 })
+-- PointLight au cratère (lumière + son volcan plus tard)
+do
+	local light = Instance.new("PointLight")
+	light.Brightness = 5
+	light.Range = 60
+	light.Color = Color3.fromRGB(255, 120, 40)
+	light.Parent = root.FournaiseGlow
+end
 
 -- ============================================================================
 -- VILLES (24 communes) — coords approximatives selon position GPS réelle

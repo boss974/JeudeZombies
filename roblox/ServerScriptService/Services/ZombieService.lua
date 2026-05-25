@@ -11,6 +11,10 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Config    = require(Shared:WaitForChild("Config"))
 local Constants = require(Shared:WaitForChild("Constants"))
 
+-- ZombieFactory : fabrique des rigs cartoon stylisés. Chargé en require relatif
+-- pour rester cohérent avec le module qui est dans le même dossier Services/.
+local ZombieFactory = require(script.Parent:WaitForChild("ZombieFactory"))
+
 local ZombieService = {}
 ZombieService.OnKilled = nil
 local active = {}
@@ -73,7 +77,14 @@ function ZombieService.Spawn(zombieType)
 	local stats = Config.Zombie[zombieType]
 	if not stats then return end
 
-	local rig = buildZombie(zombieType, stats)
+	-- Essayer la factory cartoon en priorité, fallback procédural si erreur
+	-- (évite de casser le run si ZombieFactory plante pour une raison X).
+	local ok, rig = pcall(ZombieFactory.Build, zombieType)
+	if not ok or not rig then
+		warn("[ZombieService] ZombieFactory.Build a échoué : " .. tostring(rig) ..
+			" → fallback procédural pour type " .. tostring(zombieType))
+		rig = buildZombie(zombieType, stats)
+	end
 	rig:SetAttribute("ZombieType", zombieType)
 	rig:SetAttribute("Damage", stats.Damage)
 

@@ -13,10 +13,11 @@ local Story     = require(Shared:WaitForChild("Story"))
 local StoryService = {}
 StoryService.CurrentMissionIndex = 1
 
+-- Tire une ligne contextuelle (priorité aux hooks de ville)
 local function pickLine(category)
-	local list = Story.Lines[category]
-	if not list or #list == 0 then return "" end
-	return list[math.random(1, #list)]
+	local mission = Story.Missions[StoryService.CurrentMissionIndex]
+	local city = mission and mission.city
+	return Story.PickLine(category, city)
 end
 
 local function pushDialog(player, text, kind)

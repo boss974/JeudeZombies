@@ -29,6 +29,8 @@ WaveService.Init({
 	end,
 	OnWaveStart = function(waveNumber)
 		StoryService.OnWaveStart(waveNumber)
+		-- Son de démarrage de vague
+		if _G.SoundManager then _G.SoundManager.Play("WaveStart") end
 	end,
 	OnBossWave = function()
 		StoryService.OnBossWave()
@@ -38,6 +40,8 @@ WaveService.Init({
 			RewardService.GiveWaveClearBonus(plr)
 		end
 		StoryService.OnWaveCleared(waveNumber)
+		-- Son de victoire de vague
+		if _G.SoundManager then _G.SoundManager.Play("Victory") end
 		print(("[GameController] Vague %d nettoyée"):format(waveNumber))
 	end,
 })
