@@ -15,6 +15,10 @@ Roblox permet deja de jouer sur mobile via l'application Roblox, donc la premier
 publication mobile peut etre indirecte : publier le jeu Roblox et verifier qu'il
 est bon sur telephone.
 
+Pour gagner de l'argent sur mobile natif, il faudra respecter les achats integres
+Apple/Google : les pieces, boosts, abonnements et contenus numeriques passent
+par les systemes officiels de chaque store.
+
 Pour une vraie app Play Store / iPhone ensuite, deux options :
 
 - **Godot 4** : recommande pour ce projet. Open source, export Android/iOS,
@@ -23,6 +27,15 @@ Pour une vraie app Play Store / iPhone ensuite, deux options :
   beaucoup d'assets, pubs, analytics et achats integres.
 
 Recommendation actuelle : **Roblox -> Web -> Godot mobile**.
+
+## Monétisation par support
+
+- **Roblox** : developer products, passes, abonnements, pubs immersives et pubs
+  récompensées volontaires.
+- **Web** : demo gratuite, collecte de feedback, éventuellement sponsor local ou
+  page vitrine, mais pas prioritaire pour le revenu.
+- **Godot mobile** : IAP Apple/Google, rewarded ads, battle pass cosmetique,
+  analytics propre.
 
 ## Architecture portable
 

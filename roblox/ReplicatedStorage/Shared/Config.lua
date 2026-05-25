@@ -3,6 +3,18 @@
 
 local Config = {}
 
+Config.Brand = {
+	Colors = {
+		BleuLagon = Color3.fromRGB(0, 153, 184),
+		JauneSoleil = Color3.fromRGB(244, 185, 66),
+		RougeFlamboyant = Color3.fromRGB(233, 78, 27),
+		OrangeFournaise = Color3.fromRGB(255, 107, 53),
+		VertTropical = Color3.fromRGB(28, 139, 62),
+		SableNoir = Color3.fromRGB(45, 45, 45),
+		RoseHibiscus = Color3.fromRGB(233, 30, 99),
+	},
+}
+
 Config.Arena = {
 	SpawnRadius = 60,    -- studs autour du centre
 	BorderRadius = 80,   -- limite hard avant respawn forcé

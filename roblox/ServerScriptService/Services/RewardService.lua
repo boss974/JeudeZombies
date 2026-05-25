@@ -10,6 +10,7 @@ local Remotes   = require(Shared:WaitForChild("Remotes"))
 local PlayerDataService = require(script.Parent:WaitForChild("PlayerDataService"))
 
 local RewardService = {}
+local MonetizationService = nil
 
 local function pushUpdate(player)
 	local data = PlayerDataService.Get(player)
@@ -22,8 +23,12 @@ function RewardService.GiveKillReward(player, zombieType)
 	if not stats then return end
 	local data = PlayerDataService.Get(player)
 	if not data then return end
+	if not MonetizationService then
+		MonetizationService = require(script.Parent:WaitForChild("MonetizationService"))
+	end
+	local coinMultiplier = MonetizationService.GetCoinMultiplier(player)
 	data.Score += stats.Score
-	data.Coins += stats.Coins
+	data.Coins += math.floor(stats.Coins * coinMultiplier)
 	if data.Score > (data.BestScore or 0) then data.BestScore = data.Score end
 	pushUpdate(player)
 end

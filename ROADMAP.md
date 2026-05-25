@@ -56,6 +56,16 @@
 - Tourelles automatiques
 - Boss Roi-Cendre prototype
 
+## V0.7 - Economie & revenus Roblox
+
+- Catalogue developer products
+- Game passes cosmetiques
+- Abonnement supporter
+- Panneaux pubs immersives dans le lobby
+- Rewarded ads volontaires
+- Boutique coins lisible
+- KPI retention / conversion
+
 ## V0.7 - Prototype web solo
 
 - Page web

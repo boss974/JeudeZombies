@@ -2,6 +2,18 @@
 // Garde les valeurs simples : facile à relire et équilibrer.
 
 export const CONFIG = {
+  brand: {
+    colors: {
+      bleuLagon: "#0099b8",
+      jauneSoleil: "#f4b942",
+      rougeFlamboyant: "#e94e1b",
+      orangeFournaise: "#ff6b35",
+      vertTropical: "#1c8b3e",
+      sableNoir: "#2d2d2d",
+      roseHibiscus: "#e91e63"
+    }
+  },
+
   arena: {
     width: 960,
     height: 540,
@@ -62,6 +74,16 @@ export const CONFIG = {
   world: {
     dayNightSeconds: 120,
     nightDifficultyMultiplier: 1.22
+  },
+
+  monetization: {
+    // Prototype web: pas de paiement reel ici. Sert a tester l'economie.
+    coinPacks: [
+      { id: "tiCoins", label: "Ti Pack Coins", coins: 250 },
+      { id: "grosCoins", label: "Gros Pack Coins", coins: 1200 }
+    ],
+    rewardedAd: { label: "Regarder une pub volontaire", coins: 35 },
+    supporter: { label: "Supporter Fournaise", dailyCoins: 150 }
   },
 
   scoring: {

@@ -19,6 +19,13 @@ local function defaultData()
 		Coins = Config.Player.StartCoins,
 		BestScore = 0,
 		Upgrades = { Health = 0, Speed = 0, Damage = 0 },
+		Monetization = {
+			CoinMultiplier = 1,
+			CoinBoostEndsAt = 0,
+			PendingRevives = 0,
+			OwnedSkins = {},
+			LastDailyBonus = 0,
+		},
 	}
 end
 
@@ -35,6 +42,8 @@ function PlayerDataService.Load(player)
 	if saved then
 		for k, v in pairs(saved) do data[k] = v end
 	end
+	data.Upgrades = data.Upgrades or { Health = 0, Speed = 0, Damage = 0 }
+	data.Monetization = data.Monetization or defaultData().Monetization
 	-- Reset score de session : seul BestScore persiste
 	data.Score = 0
 	cache[player.UserId] = data

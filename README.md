@@ -19,6 +19,8 @@ construit des défenses contre des vagues de zombies cartoon.
 
 La direction est détaillée dans [`PRODUCT_VISION.md`](PRODUCT_VISION.md) et la
 stratégie multi-supports dans [`MULTIPLATFORM_STRATEGY.md`](MULTIPLATFORM_STRATEGY.md).
+La monétisation est cadrée dans [`MONETIZATION_STRATEGY.md`](MONETIZATION_STRATEGY.md)
+et l'identité visuelle Réunion dans [`REUNION_VISUAL_IDENTITY.md`](REUNION_VISUAL_IDENTITY.md).
 
 ## Deux versions actuelles
 
@@ -89,6 +91,8 @@ Détails dans [`ARCHITECTURE.md`](ARCHITECTURE.md).
 - [`SAFETY_LEGAL_FRAMEWORK.md`](SAFETY_LEGAL_FRAMEWORK.md) — règles sécurité jeune public
 - [`DEPENDENCIES.md`](DEPENDENCIES.md) — stratégie dépendances
 - [`PURCHASE_STRATEGY.md`](PURCHASE_STRATEGY.md) — stratégie achats
+- [`MONETIZATION_STRATEGY.md`](MONETIZATION_STRATEGY.md) — revenus, pubs, achats, rétention
+- [`REUNION_VISUAL_IDENTITY.md`](REUNION_VISUAL_IDENTITY.md) — couleurs et style Réunion
 - [`ROADMAP.md`](ROADMAP.md) — étapes V0.1 → V1.0
 - [`CLAUDE_BRIEF.md`](CLAUDE_BRIEF.md) — brief IA
 

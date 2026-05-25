@@ -17,6 +17,8 @@ local WaveService       = require(Services:WaitForChild("WaveService"))
 local ZombieService     = require(Services:WaitForChild("ZombieService"))
 local WeaponService     = require(Services:WaitForChild("WeaponService"))
 local DefenseService    = require(Services:WaitForChild("DefenseService"))
+local MonetizationService = require(Services:WaitForChild("MonetizationService"))
+local AdPlacementService = require(Services:WaitForChild("AdPlacementService"))
 local RewardService     = require(Services:WaitForChild("RewardService"))
 local PlayerDataService = require(Services:WaitForChild("PlayerDataService"))
 local ShopService       = require(Services:WaitForChild("ShopService"))
@@ -32,6 +34,8 @@ WeaponService.Init({
 	end,
 })
 DefenseService.Init()
+MonetizationService.Init()
+AdPlacementService.Init()
 WaveService.Init({
 	OnZombieKilled = function(player, zombieType)
 		RewardService.GiveKillReward(player, zombieType)
