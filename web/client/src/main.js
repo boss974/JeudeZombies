@@ -50,6 +50,11 @@ scene.onWaveCleared = (wave) => {
 };
 scene.onBossWave = () => showDialog(randomLine("bossWarning"), "danger");
 
+// Blagues créoles
+scene.onPlayerShoot = () => showDialog(randomLine("playerShoot"), "default");
+scene.onPlayerHit   = () => showDialog(randomLine("playerHit"), "danger");
+scene.onLowHp       = () => showDialog(randomLine("lowHp"), "danger");
+
 scene.onGameOver = ({ wave, score, coins }) => {
   document.getElementById("go-mission").textContent = currentMission().city;
   document.getElementById("go-wave").textContent = wave;

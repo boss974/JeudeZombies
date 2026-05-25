@@ -448,15 +448,43 @@ git status && git push origin main
 
 ## 15. Glossaire (français créole utile pour le ton)
 
-- **Bondieu** — exclamation, équivalent "oh là là"
-- **Tilamb** — petit-fils, terme affectueux
+### Expressions courantes (utilisables en jeu)
+
+- **Bondieu !** — exclamation, équivalent "oh là là" / "mince"
+- **La moukate** — la moquerie, l'embrouille (ironique)
+- **Allé marche done !** — allez avance / dégage (ferme, pas vulgaire)
+- **Atak don !** — vas-y attaque ! (encouragement)
+- **Sa zafer !** — c'est l'affaire / oui carrément (approbation)
+- **Kaze pa** — "casse pas", ne te fais pas de souci
+- **Mi-èm-a-ou** — je t'aime
+- **Mi sava casse vot tête !** — je vais te casser la tête (taquin)
+- **Sa mèm i di !** — c'est exactement ça !
+- **Wèèèye !** — interjection de surprise
+- **Tilamb** — petit-fils, ado (terme affectueux)
 - **Marmaille** — enfants, jeunes (à utiliser dans les dialogues)
+- **Boucan** — bruit, foin (registre familier)
+
+### Géographie
+
 - **Cirque** — caldeira d'effondrement (Mafate, Salazie, Cilaos)
 - **Rempart** — paroi quasi-verticale d'un cirque
 - **Bassin** — point d'eau, souvent en cascade
-- **Boucan** — bruit, foin (registre familier)
-- **Kaze pa** — "casse pas", ne te fais pas de soucis
-- **Mi-èm-a-ou** — "je t'aime" (créole réunionnais)
+- **Ravine** — vallée encaissée creusée par une rivière
+- **Boutik** — petit commerce de quartier
 
-Le ton créole reste **léger et sympathique**, jamais caricatural. Utilisé dans
-les dialogues hors-mission pour donner couleur locale, pas systématique.
+### Street food
+
+- **Samoussa** — triangle indien frit aux légumes ou viande
+- **Bouchon** — ravioli vapeur chinois (origine hakka)
+- **Carry frites** — frites au massalé (épices)
+- **Bonbon piment** — beignet pimenté de lentilles
+- **Limonade Cot / Royal Bourbon** — boissons locales
+
+### Filtrage
+
+**Interdit** : expressions vulgaires explicites (insultes sexuelles,
+scatologiques). Le ton créole reste **familier mais respectueux** pour
+préserver l'accessibilité au public jeune (cf. SAFETY_LEGAL_FRAMEWORK.md).
+
+Le ton créole est utilisé dans les dialogues pour donner couleur locale,
+pas systématique.

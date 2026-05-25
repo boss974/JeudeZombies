@@ -134,6 +134,16 @@ Story.CityLore = {
 -- ============================================================================
 -- DIALOGUES (messages courts, affichés en HUD pendant les vagues)
 -- ============================================================================
+-- Notes ton :
+-- - Style créole réunionnais familier, JAMAIS vulgaire (public jeune).
+-- - "La moukate" = la moquerie, l'embrouille
+-- - "Allé marche done !" = allez avance / dégage
+-- - "Bondieu !" = oh là là / mince
+-- - "Mi sava casse vot tête !" = je vais te casser la tête (taquin)
+-- - "Tilamb" = petit-fils, ado (terme affectueux)
+-- - "Atak don !" = vas-y attaque !
+-- - "Sa zafer !" = c'est l'affaire / oui carrément
+-- - "Kaze pa" = casse pas (te fais pas de souci)
 Story.Lines = {
 	waveStart = {
 		"Ils arrivent...",
@@ -143,6 +153,8 @@ Story.Lines = {
 		"Aller marmaille, prépare-toi !",
 		"Reste près du portail.",
 		"Lentement, ils montent depuis la mer.",
+		"Atak don ! Ils sont là !",
+		"Bondieu, regarde-moi tout ça...",
 	},
 	waveCleared = {
 		"Vague repoussée !",
@@ -152,6 +164,8 @@ Story.Lines = {
 		"Bondieu, on respire un peu.",
 		"Une de plus.",
 		"Encore solide.",
+		"Sa zafer ! T'as géré.",
+		"Kaze pa, t'es bon.",
 	},
 	bossWarning = {
 		"Quelque chose de plus gros approche.",
@@ -159,6 +173,8 @@ Story.Lines = {
 		"Boss en vue !",
 		"L'air pèse plus lourd, soudain.",
 		"Tiens bon...",
+		"Aïe Bondieu, qui ça encore ?",
+		"Allé marche done, gros bouchon !",
 	},
 	cityCleared = {
 		"Ville libérée !",
@@ -166,34 +182,60 @@ Story.Lines = {
 		"La Réunion respire un peu plus.",
 		"Les lampions se rallument.",
 		"Un cœur de plus qui bat sur l'île.",
+		"La moukate ! On a réussi !",
+		"Sa zafer, ville sauvée !",
 	},
+	-- ===== Blagues créoles "quand un zombie te touche" =====
 	playerHit = {
-		"Aïe.",
+		"Aïe la moukate !",
+		"Bondieu, ça pique !",
+		"Allé marche done, sale bête !",
+		"Tilamb, recule un peu !",
+		"Eh, mi sava casse vot tête !",
 		"Soigne-toi vite.",
-		"Recule un peu.",
-		"Ils ne lâchent pas.",
+		"Ils ne lâchent pas, ces moukatères.",
+		"Wèèèye, mi té pa prêt !",
 	},
 	lowHp = {
 		"Il faut tenir...",
 		"Mi-èm-a-ou, courage !",
 		"Plus que quelques secondes.",
 		"Pas maintenant, pas comme ça.",
+		"Bondieu, garde-moi !",
+		"Tilamb, reste debout !",
 	},
 	missionStart = {
 		"L'aube se lève sur la mission.",
 		"On y va.",
 		"Tu sais ce qu'il te reste à faire.",
+		"Allé, en avant marmaille !",
 	},
 	firstZombieKill = {
 		"Le premier est tombé.",
 		"Ça marche.",
 		"Continue comme ça.",
+		"Sa mêm i di !",
+		"Ah ouais, tu gères tilamb.",
+	},
+	-- ===== Blagues créoles "quand tu tires sur un zombie" =====
+	playerShoot = {
+		"Atak don !",
+		"Allé marche done !",
+		"La moukate !",
+		"Mi sava casse vot tête !",
+		"Tiens, prends ça !",
+		"Bouge de là, sale bouchon !",
+		"Eh là-bas !",
+		"Sa zafer !",
+		"Boom, tilamb !",
+		"Wèèèye, à la porte !",
 	},
 	volcanoRumble = {
 		"Le Piton gronde.",
 		"L'air sent le soufre.",
 		"La cendre tombe encore...",
 		"Quelque part, le cratère brille.",
+		"Eh, la Fournaise est fâchée !",
 	},
 }
 

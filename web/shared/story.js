@@ -1,5 +1,6 @@
 // Données narratives partagées web ↔ serveur futur.
-// Pendant Roblox, c'est dupliqué dans Story.lua (même contenu).
+// Synchronisé avec Story.lua (Roblox). Ton créole réunionnais familier
+// mais JAMAIS vulgaire (public jeune, cf. SAFETY_LEGAL_FRAMEWORK.md).
 
 export const STORY = {
   title: "L'Éveil de la Fournaise",
@@ -31,10 +32,65 @@ export const STORY = {
   ],
 
   lines: {
-    waveStart:   ["Ils arrivent...", "Encerclement en cours.", "Tenez la ligne !", "Une vague approche."],
-    waveCleared: ["Vague repoussée !", "Bien joué.", "Reprends ton souffle.", "Ils reculent."],
-    bossWarning: ["Quelque chose de plus gros approche.", "Le sol tremble.", "Boss en vue !"],
-    cityCleared: ["Ville libérée !", "Une lumière revient.", "La Réunion respire un peu plus."]
+    waveStart: [
+      "Ils arrivent...",
+      "Encerclement en cours.",
+      "Tenez la ligne !",
+      "Une vague approche.",
+      "Aller marmaille, prépare-toi !",
+      "Atak don ! Ils sont là !",
+      "Bondieu, regarde-moi tout ça..."
+    ],
+    waveCleared: [
+      "Vague repoussée !",
+      "Bien joué.",
+      "Reprends ton souffle.",
+      "Bondieu, on respire un peu.",
+      "Sa zafer ! T'as géré.",
+      "Kaze pa, t'es bon."
+    ],
+    bossWarning: [
+      "Quelque chose de plus gros approche.",
+      "Le sol tremble.",
+      "Boss en vue !",
+      "Aïe Bondieu, qui ça encore ?",
+      "Allé marche done, gros bouchon !"
+    ],
+    cityCleared: [
+      "Ville libérée !",
+      "Une lumière revient.",
+      "La Réunion respire un peu plus.",
+      "La moukate ! On a réussi !",
+      "Sa zafer, ville sauvée !"
+    ],
+    // ===== Blagues quand un zombie te touche =====
+    playerHit: [
+      "Aïe la moukate !",
+      "Bondieu, ça pique !",
+      "Allé marche done, sale bête !",
+      "Tilamb, recule un peu !",
+      "Mi sava casse vot tête !",
+      "Wèèèye, mi té pa prêt !",
+      "Ces moukatères ne lâchent pas..."
+    ],
+    lowHp: [
+      "Il faut tenir...",
+      "Mi-èm-a-ou, courage !",
+      "Bondieu, garde-moi !",
+      "Tilamb, reste debout !"
+    ],
+    // ===== Blagues quand tu tires =====
+    playerShoot: [
+      "Atak don !",
+      "Allé marche done !",
+      "La moukate !",
+      "Mi sava casse vot tête !",
+      "Tiens, prends ça !",
+      "Bouge de là, sale bouchon !",
+      "Sa zafer !",
+      "Boom, tilamb !",
+      "Wèèèye, à la porte !"
+    ]
   }
 };
 

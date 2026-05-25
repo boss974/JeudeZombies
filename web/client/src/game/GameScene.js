@@ -57,6 +57,12 @@ export class GameScene {
     // Tir
     if (this.input.mouse.down && this.player.canFire()) {
       this.bullets.push(this.player.fire());
+      // Blague créole occasionnelle au tir (15% de chance, throttle ~3s)
+      const now = performance.now();
+      if (Math.random() < 0.15 && now - (this._lastShootLine || 0) > 3000) {
+        this._lastShootLine = now;
+        this.onPlayerShoot?.();
+      }
     }
 
     // Vague
@@ -99,7 +105,19 @@ export class GameScene {
       const dx = z.x - this.player.x, dy = z.y - this.player.y;
       const rr = (z.r + this.player.r) * (z.r + this.player.r);
       if (dx * dx + dy * dy <= rr && z.touchCooldown <= 0) {
-        if (this.player.hit(z.damage)) z.touchCooldown = 0.5;
+        if (this.player.hit(z.damage)) {
+          z.touchCooldown = 0.5;
+          // Blague créole quand on se prend un coup (throttle ~2s)
+          const now = performance.now();
+          if (now - (this._lastHitLine || 0) > 2000) {
+            this._lastHitLine = now;
+            this.onPlayerHit?.();
+            // Si HP critique, ligne "lowHp" plutôt
+            if (this.player.hp / CONFIG.player.maxHp < 0.25) {
+              setTimeout(() => this.onLowHp?.(), 300);
+            }
+          }
+        }
       }
     }
 
