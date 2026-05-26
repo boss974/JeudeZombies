@@ -48,7 +48,12 @@ const hud = {
   combo: document.getElementById("hud-combo"),
   pseudo: document.getElementById("hud-pseudo"),
   difficulty: document.getElementById("hud-difficulty"),
-  buffs: document.getElementById("hud-buffs")
+  buffs: document.getElementById("hud-buffs"),
+  // Compteurs de défenses (nouveau)
+  defCountTurret:    document.getElementById("def-count-turret"),
+  defCountBarricade: document.getElementById("def-count-barricade"),
+  defCostTurret:     document.getElementById("def-cost-turret"),
+  defCostBarricade:  document.getElementById("def-cost-barricade")
 };
 
 const upgradeScreen = document.getElementById("upgrade-choice");
@@ -144,6 +149,28 @@ scene.onDefensePlaced = (name) => {
 scene.onNoCoins = () => {
   audio.noCoins();
   showDialog("Pas assez de coins, tilamb.", "danger");
+};
+scene.onDefenseLimitReached = (type, limit) => {
+  audio.noCoins();
+  const label = type === "turret" ? "tourelles" : "barricades";
+  showDialog(`Max ${limit} ${label} atteint — détruis-en une ou attends la prochaine vague.`, "danger");
+};
+scene.onBossPhaseChange = (phase) => {
+  if (phase === 2) {
+    audio.bossWarning("boss");
+    showDialog("⚠ PHASE 2 — Le boss spawn des minions et dash sur toi !", "danger");
+  } else if (phase === 3) {
+    audio.bossWarning("boss");
+    showDialog("☢ PHASE 3 — Lave + cri assourdissant ! Cours, bat'carré !", "danger");
+  }
+};
+scene.onBossDash = () => audio.hit?.();
+scene.onBossRoar = () => {
+  audio.bossWarning?.("boss");
+  showDialog("ROAAAR ! Tu es ralenti !", "danger");
+};
+scene.onExploderBoom = () => {
+  audio.hit?.();
 };
 
 scene.onGameOver = ({ wave, score, coins }) => {
@@ -318,7 +345,7 @@ volSfxEl?.addEventListener("input", () => {
   audio.setSfxVolume?.(v / 100);
 });
 
-// Mise à jour HUD en boucle (pseudo, difficulté, buffs)
+// Mise à jour HUD en boucle (pseudo, difficulté, buffs, défenses)
 setInterval(() => {
   if (hudEl.classList.contains("hidden")) return;
   if (hud.pseudo) hud.pseudo.textContent = getPlayerName() || "Joueur";
@@ -329,7 +356,33 @@ setInterval(() => {
     if (scene.buffs.damage > t) list.push(`⚡${Math.ceil(scene.buffs.damage - t)}s`);
     if (scene.buffs.speed > t) list.push(`»${Math.ceil(scene.buffs.speed - t)}s`);
     if (scene.buffs.magnet > t) list.push(`U${Math.ceil(scene.buffs.magnet - t)}s`);
+    if (scene.bossRoarSlow > t) list.push(`SLOW ${Math.ceil(scene.bossRoarSlow - t)}s`);
     hud.buffs.textContent = list.length ? list.join(" ") : "—";
+  }
+  // Compteurs / coûts de défense
+  if (scene.currentDefenseCount && scene.waveManager) {
+    const tNow = scene.currentDefenseCount("turret");
+    const tMax = scene.currentDefenseLimit("turret");
+    const tCost = scene.currentDefenseCost("turret");
+    if (hud.defCountTurret) {
+      hud.defCountTurret.textContent = `${tNow}/${tMax}`;
+      hud.defCountTurret.classList.toggle("full", tNow >= tMax);
+    }
+    if (hud.defCostTurret) {
+      hud.defCostTurret.textContent = `${tCost} ¢`;
+      hud.defCostTurret.classList.toggle("too-expensive", (scene.coins || 0) < tCost);
+    }
+    const bNow = scene.currentDefenseCount("barricade");
+    const bMax = scene.currentDefenseLimit("barricade");
+    const bCost = scene.currentDefenseCost("barricade");
+    if (hud.defCountBarricade) {
+      hud.defCountBarricade.textContent = `${bNow}/${bMax}`;
+      hud.defCountBarricade.classList.toggle("full", bNow >= bMax);
+    }
+    if (hud.defCostBarricade) {
+      hud.defCostBarricade.textContent = `${bCost} ¢`;
+      hud.defCostBarricade.classList.toggle("too-expensive", (scene.coins || 0) < bCost);
+    }
   }
 }, 250);
 

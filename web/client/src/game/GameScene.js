@@ -7,6 +7,7 @@ import { Minimap } from "./Minimap.js";
 import { Pickup } from "./Pickup.js";
 import { Player } from "./Player.js";
 import { WaveManager } from "./WaveManager.js";
+import { Zombie } from "./Zombie.js";
 import { computeBonuses, loadUpgrades } from "./Upgrades.js";
 
 // Scène principale : boucle update/draw + collisions + score.
@@ -25,6 +26,9 @@ export class GameScene {
     this.zombies = [];
     this.defenses = [];
     this.pickups = [];                 // Pickup[] visibles au sol
+    this.lavaTrails = [];              // flaques de lave laissées par le boss en phase 3
+    this.bossRoarSlow = 0;             // worldTime jusqu'auquel le joueur est ralenti
+    this.bossRoarMul = 0.45;           // multiplicateur de speed pendant le slow
     // Buffs temporaires actifs (timestamps en sec depuis worldTime)
     this.buffs = { damage: 0, speed: 0, magnet: 0 };
     this.bonuses = computeBonuses(loadUpgrades());
@@ -56,6 +60,8 @@ export class GameScene {
     this.zombies = [];
     this.defenses = [];
     this.pickups = [];
+    this.lavaTrails = [];
+    this.bossRoarSlow = 0;
     this.particles = [];
     this.score = 0;
     this.coins = 24;
@@ -63,6 +69,9 @@ export class GameScene {
     this.combo = 1;
     this.comboTimer = 0;
     this.buffs = { damage: 0, speed: 0, magnet: 0 };
+    // Compteurs cumulés de défenses placées (pour le coût croissant). Pas reset au kill,
+    // c'est volontaire : plus tu places, plus la prochaine coûte cher.
+    this._defensesPlaced = { turret: 0, barricade: 0 };
     this._lastStatus = "intermission";
     this.state = STATE.PLAYING;
 
@@ -88,10 +97,11 @@ export class GameScene {
   }
 
   _update(dt) {
-    // Applique les multiplicateurs permanents (upgrades) + temporaires (pickups)
-    // AVANT l'update du joueur, pour que le déplacement de cette frame en profite.
+    // Applique les multiplicateurs permanents (upgrades) + temporaires (pickups + roar boss)
+    // AVANT l'update du joueur.
     const speedBuff = this.buffs.speed > this.worldTime ? 1.3 : 1;
-    this.player.speedMul = (this.bonuses?.speedMul || 1) * speedBuff;
+    const roarSlow  = this.bossRoarSlow > this.worldTime ? this.bossRoarMul : 1;
+    this.player.speedMul = (this.bonuses?.speedMul || 1) * speedBuff * roarSlow;
     this.player.fireRateMul = (this.bonuses?.fireRateMul || 1);
 
     this.player.update(dt, this.input, this.arena);
@@ -119,7 +129,11 @@ export class GameScene {
 
     // Vague
     const spawned = this.waveManager.update(dt, this.zombies, this._isNight());
-    if (spawned) this.zombies.push(spawned);
+    if (spawned) {
+      // Boss : câble les callbacks pour les patterns spéciaux (dash/spawn/roar/lava)
+      if (spawned.type === "boss") this._wireBossCallbacks(spawned);
+      this.zombies.push(spawned);
+    }
 
     for (const d of this.defenses) d.update(dt, this.zombies, this.bullets);
 
@@ -133,18 +147,34 @@ export class GameScene {
     // Zombies
     for (const z of this.zombies) z.update(dt, this.player);
 
-    // Collisions balles -> zombies
+    // Exploders qui se sont auto-détruits au contact du joueur pendant z.update()
+    for (const z of this.zombies) {
+      if (!z.alive && z._shouldExplode) {
+        this._explodeExploder(z);
+        z._shouldExplode = false;
+      }
+    }
+
+    // Collisions balles -> zombies (passe fromX/fromY pour le shielded shield check)
     for (const b of this.bullets) {
       if (b.life <= 0) continue;
       for (const z of this.zombies) {
         if (!z.alive) continue;
         const dx = z.x - b.x, dy = z.y - b.y;
         if (dx * dx + dy * dy <= (z.r + b.r) * (z.r + b.r)) {
-          z.damage_take(b.damage);
+          // Origine de la balle ≈ b.x - vx*petit (la balle vient d'avant ce frame).
+          // Pour le shielded check, on utilise un point en arrière de la balle.
+          const back = 6;
+          const sp = Math.hypot(b.vx, b.vy) || 1;
+          const fromX = b.x - (b.vx / sp) * back;
+          const fromY = b.y - (b.vy / sp) * back;
+          z.damage_take(b.damage, fromX, fromY);
           b.life = 0;
           this.onBulletHit?.();
           this._spawnHitParticles(b.x, b.y, z.color);
           if (!z.alive) {
+            // Exploder : AOE à la mort
+            if (z._shouldExplode) this._explodeExploder(z);
             this._registerKill(z);
             this.onZombieKilled?.(z.type);
             this._spawnHitParticles(z.x, z.y, z.color, 14);
@@ -158,6 +188,24 @@ export class GameScene {
         }
       }
     }
+
+    // Lava trails : décompte de vie + dégâts au joueur s'il marche dedans
+    for (const lt of this.lavaTrails) {
+      lt.life -= dt;
+      if (lt.life > 0) {
+        const dx = this.player.x - lt.x;
+        const dy = this.player.y - lt.y;
+        if (dx * dx + dy * dy <= lt.r * lt.r) {
+          // Inflige dommages au joueur (sans invuln pour que ça pique vraiment de marcher dedans)
+          if (this.player.invuln <= 0 && this.player.alive) {
+            const dmg = lt.dps * dt;
+            this.player.hp -= dmg;
+            if (this.player.hp <= 0) { this.player.hp = 0; this.player.alive = false; }
+          }
+        }
+      }
+    }
+    this.lavaTrails = this.lavaTrails.filter(lt => lt.life > 0);
 
     // Pickups : update + ramassage
     const magnetActive = this.buffs.magnet > this.worldTime;
@@ -316,21 +364,132 @@ export class GameScene {
     if (CONFIG.defense[type]) this.selectedDefense = type;
   }
 
+  /** Nombre actuel de défenses ALIVE d'un type donné (les détruites libèrent un slot). */
+  currentDefenseCount(type) {
+    return this.defenses.filter(d => d.type === type && d.alive).length;
+  }
+
+  /** Limite courante de défenses d'un type, qui augmente avec les vagues. */
+  currentDefenseLimit(type) {
+    const cfg = CONFIG.defense[type];
+    if (!cfg) return 0;
+    const wave = this.waveManager?.wave || 1;
+    const extra = Math.floor((wave - 1) / Math.max(1, cfg.limitPerWaves));
+    return Math.min(cfg.maxLimit, cfg.baseLimit + extra);
+  }
+
+  /** Coût courant de la PROCHAINE défense placée (croît exponentiellement). */
+  currentDefenseCost(type) {
+    const cfg = CONFIG.defense[type];
+    if (!cfg) return 0;
+    const placed = this._defensesPlaced?.[type] || 0;
+    return Math.ceil(cfg.baseCost * Math.pow(cfg.costMul || 1, placed));
+  }
+
   _tryPlaceDefense(x, y) {
     if (this.state !== STATE.PLAYING) return false;
-    const cfg = CONFIG.defense[this.selectedDefense];
-    if (!cfg || this.coins < cfg.cost) {
+    const type = this.selectedDefense;
+    const cfg = CONFIG.defense[type];
+    if (!cfg) return false;
+    // Limite atteinte ?
+    if (this.currentDefenseCount(type) >= this.currentDefenseLimit(type)) {
+      this.onDefenseLimitReached?.(type, this.currentDefenseLimit(type));
+      return false;
+    }
+    const cost = this.currentDefenseCost(type);
+    if (this.coins < cost) {
       this.onNoCoins?.();
       return false;
     }
     const tooCloseToPlayer = Math.hypot(x - this.player.x, y - this.player.y) < 52;
     const blocked = this.defenses.some(d => Math.hypot(x - d.x, y - d.y) < d.r + cfg.radius + 12);
     if (tooCloseToPlayer || blocked) return false;
-    this.coins -= cfg.cost;
-    this.defenses.push(new Defense(x, y, this.selectedDefense));
+    this.coins -= cost;
+    this.defenses.push(new Defense(x, y, type));
+    this._defensesPlaced[type] = (this._defensesPlaced[type] || 0) + 1;
     this.onDefensePlaced?.(cfg.label);
     this._refreshHud();
     return true;
+  }
+
+  /** Câble les callbacks d'un boss qui vient de spawn pour ses patterns. */
+  _wireBossCallbacks(boss) {
+    boss.onPhaseChange = (phase) => {
+      this.onBossPhaseChange?.(phase);
+    };
+    boss.onDash = () => {
+      this.onBossDash?.();
+    };
+    boss.onSpawnMinion = (mx, my, minionType) => {
+      const minion = new Zombie(mx, my, minionType);
+      // Hérite du scaling de la vague pour rester challenging
+      const sm = (1 + (this.waveManager.wave - 1) * CONFIG.wave.speedScalingPerWave);
+      const hm = (1 + (this.waveManager.wave - 1) * CONFIG.wave.hpScalingPerWave);
+      minion.speed *= sm;
+      minion.baseSpeed = minion.speed;
+      minion.hp = Math.ceil(minion.hp * hm);
+      minion.maxHp = minion.hp;
+      this.zombies.push(minion);
+    };
+    boss.onRoar = (rx, ry, radius, slowDur, slowMul) => {
+      const dx = this.player.x - rx;
+      const dy = this.player.y - ry;
+      if (dx * dx + dy * dy <= radius * radius) {
+        this.bossRoarSlow = this.worldTime + slowDur;
+        this.bossRoarMul = slowMul;
+      }
+      this.onBossRoar?.(rx, ry, radius);
+      this._spawnRoarRing(rx, ry, radius);
+    };
+    boss.onLavaTrail = (lx, ly, lr, life, dps) => {
+      this.lavaTrails.push({ x: lx, y: ly, r: lr, maxLife: life, life, dps });
+    };
+  }
+
+  /** Applique l'AOE d'un exploder mort sur le joueur + zombies voisins. */
+  _explodeExploder(z) {
+    const r = z.aoeRadius || 80;
+    const dmg = z.aoeDamage || 30;
+    // Dommage au joueur s'il est dans le rayon
+    const dx = this.player.x - z.x;
+    const dy = this.player.y - z.y;
+    if (dx * dx + dy * dy <= r * r) {
+      this.player.hit(dmg);
+      this.onPlayerDamaged?.();
+    }
+    // Dommage friendly-fire aux autres zombies (sans loop infini d'AOE chain)
+    for (const other of this.zombies) {
+      if (!other.alive || other === z) continue;
+      const ex = other.x - z.x;
+      const ey = other.y - z.y;
+      if (ex * ex + ey * ey <= r * r) {
+        other.damage_take(dmg * 0.6);
+        if (!other.alive && other.type !== "exploder") {
+          this._registerKill(other);
+        }
+      }
+    }
+    // Particules
+    this._spawnHitParticles(z.x, z.y, "#ff7a2a", 24);
+    this._shake = Math.min(14, this._shake + 6);
+    this.onExploderBoom?.(z.x, z.y, r);
+  }
+
+  /** Spawn une "onde" de particules visuelle pour le roar du boss. */
+  _spawnRoarRing(x, y, radius) {
+    const N = 28;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      const s = 280 + Math.random() * 60;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: 0.6,
+        color: "#ff6b35"
+      });
+    }
+    this._shake = Math.min(14, this._shake + 5);
   }
 
   _nearestBarricade(z) {
@@ -388,6 +547,26 @@ export class GameScene {
     if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER && this.state !== STATE.PAUSED) {
       ctx.restore();
       return;
+    }
+
+    // Lava trails (sous les particules pour que les impacts les recouvrent)
+    for (const lt of this.lavaTrails) {
+      const lifeRatio = Math.max(0, lt.life / lt.maxLife);
+      const alpha = 0.35 + lifeRatio * 0.45;
+      // Cœur jaune-orange
+      const grad = ctx.createRadialGradient(lt.x, lt.y, 2, lt.x, lt.y, lt.r);
+      grad.addColorStop(0, `rgba(255,230,120,${alpha})`);
+      grad.addColorStop(0.5, `rgba(255,140,40,${alpha * 0.85})`);
+      grad.addColorStop(1, `rgba(180,40,10,0)`);
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(lt.x, lt.y, lt.r, 0, Math.PI * 2);
+      ctx.fill();
+      // Cratère central
+      ctx.fillStyle = `rgba(255,80,20,${alpha * 0.55})`;
+      ctx.beginPath();
+      ctx.arc(lt.x, lt.y, lt.r * 0.4, 0, Math.PI * 2);
+      ctx.fill();
     }
 
     // Particules (impacts)
@@ -475,6 +654,35 @@ export class GameScene {
     if (this._damageFlash > 0.01) {
       ctx.fillStyle = `rgba(255,30,30,${this._damageFlash * 0.45})`;
       ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+    }
+
+    // Barre de vie du boss (par-dessus la vignette, fixe en haut du canvas)
+    const boss = this.zombies.find(z => z.alive && z.type === "boss");
+    if (boss) {
+      const w = this.arena.width * 0.6;
+      const h = 18;
+      const x = (this.arena.width - w) / 2;
+      const y = 18;
+      // Fond
+      ctx.fillStyle = "rgba(0,0,0,0.75)";
+      ctx.fillRect(x - 3, y - 3, w + 6, h + 6);
+      // Cadre
+      ctx.strokeStyle = "#b8902c";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x - 3, y - 3, w + 6, h + 6);
+      // Remplissage HP : gradient selon phase
+      const ratio = Math.max(0, boss.hp / boss.maxHp);
+      const phaseColor = boss.phase === 3 ? "#ff3030"
+                       : boss.phase === 2 ? "#ff8c2a"
+                                          : "#f4b942";
+      ctx.fillStyle = phaseColor;
+      ctx.fillRect(x, y, w * ratio, h);
+      // Label
+      ctx.fillStyle = "#ffe6a0";
+      ctx.font = "bold 14px Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(`BOSS — Phase ${boss.phase}/3   ${Math.ceil(boss.hp)} / ${boss.maxHp}`, this.arena.width / 2, y + 13);
+      ctx.textAlign = "start";
     }
 
     // Mini-carte radar (par-dessus la vignette mais sous le HUD HTML)

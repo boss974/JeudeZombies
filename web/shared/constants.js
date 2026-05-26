@@ -11,6 +11,8 @@ export const ENEMY_TYPE = {
   NORMAL: "normal",
   FAST: "fast",
   HEAVY: "heavy",
+  EXPLODER: "exploder",   // explose à la mort + au contact (AOE 80px)
+  SHIELDED: "shielded",   // bouclier frontal 55% absorption
   MINIBOSS: "miniBoss",
   BOSS: "boss"
 };

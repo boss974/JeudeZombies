@@ -29,17 +29,33 @@ export class WaveManager {
   }
 
   _enemiesForWave(n) {
-    return Math.ceil((CONFIG.wave.baseEnemies + CONFIG.wave.enemiesPerWave * (n - 1)) * this.difficulty);
+    const w = CONFIG.wave;
+    const bonus = Math.floor((n - 1) / w.bonusEnemiesEveryN) * w.bonusEnemiesAmount;
+    return Math.ceil((w.baseEnemies + w.enemiesPerWave * (n - 1) + bonus) * this.difficulty);
+  }
+
+  // Intervalle de spawn dans la vague : descend progressivement vers spawnIntervalMin
+  // pour densifier les vagues tardives sans pour autant les rendre injouables.
+  _spawnIntervalForWave(n) {
+    const w = CONFIG.wave;
+    const decay = Math.pow(1 - w.spawnIntervalDecay, Math.max(0, n - 1));
+    return Math.max(w.spawnIntervalMin, w.spawnInterval * decay);
   }
 
   _pickType() {
     const w = this.wave;
+    const cfg = CONFIG.wave;
     const r = Math.random();
-    const heavyUnlocked = w >= CONFIG.wave.heavyUnlockAt;
-    const fastUnlocked  = w >= CONFIG.wave.fastUnlockAt;
+    const shielded = w >= cfg.shieldedUnlockAt;
+    const exploder = w >= cfg.exploderUnlockAt;
+    const heavy    = w >= cfg.heavyUnlockAt;
+    const fast     = w >= cfg.fastUnlockAt;
 
-    if (heavyUnlocked && r < 0.2) return ENEMY_TYPE.HEAVY;
-    if (fastUnlocked  && r < 0.5) return ENEMY_TYPE.FAST;
+    // Distribution par paliers de difficulté. À la vague 9+ on a tous les types.
+    if (shielded && r < 0.13) return ENEMY_TYPE.SHIELDED;
+    if (exploder && r < 0.25) return ENEMY_TYPE.EXPLODER;
+    if (heavy    && r < 0.40) return ENEMY_TYPE.HEAVY;
+    if (fast     && r < 0.65) return ENEMY_TYPE.FAST;
     return ENEMY_TYPE.NORMAL;
   }
 
@@ -73,15 +89,29 @@ export class WaveManager {
           const sp = this._spawnPoint();
           const type = this._pickWaveType();
           this.toSpawn--;
-          this.spawnTimer = CONFIG.wave.spawnInterval;
+          this.spawnTimer = this._spawnIntervalForWave(this.wave);
+
+          // Scaling de la vague : par wave + par mission difficulty, cappés.
+          const w = CONFIG.wave;
+          const speedMul = Math.min(
+            w.maxSpeedMultiplier,
+            (1 + (this.wave - 1) * w.speedScalingPerWave) * (1 + (this.difficulty - 1) * 0.18)
+          );
+          const hpMul = Math.min(
+            w.maxHpMultiplier,
+            (1 + (this.wave - 1) * w.hpScalingPerWave) * (1 + (this.difficulty - 1) * 0.22)
+          );
+
           const zombie = new Zombie(sp.x, sp.y, type);
-          zombie.speed *= 1 + (this.difficulty - 1) * 0.18;
-          zombie.hp = Math.ceil(zombie.hp * (1 + (this.difficulty - 1) * 0.22));
+          zombie.speed *= speedMul;
+          zombie.baseSpeed = zombie.speed;
+          zombie.hp = Math.ceil(zombie.hp * hpMul);
           zombie.maxHp = zombie.hp;
           zombie.score = Math.ceil(zombie.score * this.difficulty);
           zombie.coins = Math.ceil(zombie.coins * Math.min(1.8, this.difficulty));
           if (isNight) {
             zombie.speed *= CONFIG.world.nightDifficultyMultiplier;
+            zombie.baseSpeed = zombie.speed;
             zombie.hp = Math.ceil(zombie.hp * 1.12);
             zombie.maxHp = zombie.hp;
           }

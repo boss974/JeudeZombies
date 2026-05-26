@@ -300,6 +300,50 @@ html, body {
   margin: 0;
   border-radius: 6px;
   letter-spacing: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  line-height: 1.1;
+}
+
+.defense-tools .def-label {
+  font-weight: 800;
+}
+
+.defense-tools .def-count {
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--c-lampions);
+  background: rgba(20, 10, 5, 0.45);
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 230, 160, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+
+.defense-tools .def-count.full {
+  color: #fff;
+  background: rgba(255, 48, 48, 0.55);
+  border-color: #ff3030;
+  animation: limit-flash 1.2s ease-in-out infinite;
+}
+
+@keyframes limit-flash {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+.defense-tools .def-cost {
+  font-size: 10px;
+  color: var(--c-cannelle);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.defense-tools .def-cost.too-expensive {
+  color: #ff7a7a;
+  text-decoration: line-through;
 }
 
 .hp-bar {
