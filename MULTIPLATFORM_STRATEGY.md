@@ -1,5 +1,11 @@
 # Strategie multi-supports
 
+> Stratégie de portage Roblox → Web → Mobile natif. Voir aussi
+> [`MULTIPLAYER.md`](MULTIPLAYER.md) (coop Roblox actif),
+> [`PUBLISH.md`](PUBLISH.md) (procédure publication Roblox),
+> [`MOBILE`](roblox/StarterPlayer/StarterPlayerScripts/MobileControls.client.lua)
+> (contrôles tactiles déjà implémentés).
+
 ## Priorite
 
 1. **Roblox** : meilleur support maintenant. Rapide a tester, multijoueur natif,

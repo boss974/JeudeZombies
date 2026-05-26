@@ -1,5 +1,10 @@
 # Identite visuelle Reunion
 
+> Ce document **étend** [`GAME_KNOWLEDGE.md §3`](GAME_KNOWLEDGE.md) (palette
+> officielle canonique) avec des **règles d'application** et des **idées de
+> skins** thématiques pour la monétisation cosmétique.
+> La palette ici doit rester synchronisée avec GAME_KNOWLEDGE §3.
+
 ## Intention
 
 Le jeu doit sentir La Reunion des les premieres secondes : volcan, lagon,

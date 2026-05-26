@@ -1,5 +1,11 @@
 # Monetization Strategy - L'Eveil de la Fournaise
 
+> Stratégie de revenus. **À implémenter SEULEMENT après validation de la
+> boucle gratuite** (cf. `PURCHASE_STRATEGY.md` qui couvre les achats de
+> dev, et `CAHIER_DES_CHARGES.md §5` qui interdit le pay-to-win).
+> Code actuel : `MonetizationService.lua` est en place mais avec
+> `Product IDs = 0` (placeholders, aucun prompt avant publication).
+
 ## Objectif
 
 Faire de l'argent sans casser le plaisir. Le joueur doit pouvoir avancer sans

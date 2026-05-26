@@ -1,5 +1,10 @@
 # Product Vision - L'Eveil de la Fournaise
 
+> **Résumé exécutif** de la vision produit. Pour le détail contractuel
+> (périmètre, contraintes, critères d'acceptation), voir
+> [`CAHIER_DES_CHARGES.md`](CAHIER_DES_CHARGES.md). Pour la référence
+> technique complète, voir [`GAME_KNOWLEDGE.md`](GAME_KNOWLEDGE.md).
+
 ## Promesse
 
 Un jeu d'action tower defense cartoon ou l'on sauve La Reunion commune par

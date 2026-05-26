@@ -418,17 +418,44 @@ Le client distingue par `typeof(arg1)` : "number"→vague, "string"→dialogue.
 4. **`pcall` autour des DataStores** : tolérer les pannes Roblox.
 5. **Logs préfixés** : `print("[ServiceName] message")` pour repérer la source.
 
-## 13. Roadmap d'amélioration (cette session)
+## 13. Roadmap d'amélioration
 
-| # | Item | Statut | Owner |
-|---|---|---|---|
-| 1 | Knowledge base GAME_KNOWLEDGE.md | ⏳ | claude |
-| 2 | TerrainBuilder.server.lua (relief) | ⏳ | claude |
-| 3 | Waterfalls.server.lua (3 cascades) | ⏳ | claude |
-| 4 | Dialogues étendus (Story.Lines + CityHooks) | ⏳ | claude |
-| 5 | Zombies stylés (modèles, anims, couleurs) | ⏳ | agent général |
-| 6 | SoundManager.server.lua (ambiance + UI + zombies) | ⏳ | agent général |
-| 7 | Tests Studio + commit final | ⏳ | claude |
+### Phase 1-2 (livré)
+
+| # | Item | Statut |
+|---|---|---|
+| 1 | Knowledge base GAME_KNOWLEDGE.md | ✅ |
+| 2 | TerrainBuilder.server.lua (relief Roblox Terrain) | ✅ |
+| 3 | Waterfalls.server.lua (3 cascades Mafate/Salazie/Cilaos) | ✅ |
+| 4 | Dialogues étendus (Story.Lines + CityHooks + adultLines) | ✅ |
+| 5 | Zombies stylés (ZombieFactory cartoon par type) | ✅ |
+| 6 | SoundManager.server.lua + audio web procédural | ✅ |
+| 7 | Map enrichie : route littoral + NRL + cases créoles + boutiks | ✅ |
+| 8 | Mobile : MobileControls + haptic + auto-aim + tutoriel | ✅ |
+| 9 | Settings joueur (pseudo + date naissance + mode adulte ≥18) | ✅ |
+
+### Phase 3 missions (livré commit e52cf0b)
+
+| # | Item | Statut |
+|---|---|---|
+| 10 | MISSIONS_DETAILLEES.md (histoire + POI + objectifs 7 villages) | ✅ |
+| 11 | MissionService.lua (validation serveur objectifs séquentiels) | ✅ |
+| 12 | PointsOfInterest.server.lua (markers néon physiques) | ✅ |
+| 13 | PhotoAction.client.lua (touche E = photo flash + son) | ✅ |
+| 14 | MissionHUD.client.lua (liste objectifs cochés) | ✅ |
+| 15 | Achievements.lua (16 succès bronze/silver/gold/platinum) | ✅ |
+| 16 | CollectionService.lua (souvenirs + photos + stats persistants) | ✅ |
+| 17 | GalleryUI.client.lua (3 onglets, touche G) | ✅ |
+
+### Phase 4 (à venir)
+
+| # | Item | Statut |
+|---|---|---|
+| 18 | Boss final Roi-Cendre (modèle géant) | ⏳ |
+| 19 | PNJ vivants (silhouettes habitants dans les villes) | ⏳ |
+| 20 | Tests Studio multi-joueur + device mobile | ⏳ |
+| 21 | Publication Roblox (place publique) | ⏳ |
+| 22 | Portage Godot mobile (après validation Roblox) | ⏳ |
 
 ## 14. Commandes utiles
 

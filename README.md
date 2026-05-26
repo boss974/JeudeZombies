@@ -1,116 +1,148 @@
-# L'Éveil de la Fournaise — Jeu de Zombies
-
-Tower defense coopératif cartoon, sur l'île de La Réunion. Tu défends les
-villes vague par vague pendant que le Piton de la Fournaise libère sa cendre.
+# L'Éveil de la Fournaise — Tower defense cartoon La Réunion
 
 > Le Piton de la Fournaise est entré en éruption. Une étrange poussière orange
 > descend des nuages. Les habitants s'endorment puis se relèvent, les yeux vides.
-> Sauve les 24 communes. Réveille La Réunion.
+> **Sauve les 24 communes. Réveille La Réunion.**
 
-Le ton est **cartoon apocalypse non-gore**, pensé pour un public jeune
-(cf. `SAFETY_LEGAL_FRAMEWORK.md`).
+🌋 **Cartoon apocalypse non-gore** • **Public jeune** • **Multi-plateforme**
+(PC, mobile, console via Roblox) • **Coop jusqu'à 6 joueurs**
 
-## Vision
+---
 
-Objectif : faire un jeu **fun, touristique et rigolo**, jouable d'abord sur
-Roblox, puis portable vers web/mobile. Le joueur visite La Réunion, protège ses
-villes, découvre des lieux connus, rit avec des répliques créoles familiales et
-construit des défenses contre des vagues de zombies cartoon.
+## 🚀 Démarrage rapide
 
-La direction est détaillée dans [`PRODUCT_VISION.md`](PRODUCT_VISION.md) et la
-stratégie multi-supports dans [`MULTIPLATFORM_STRATEGY.md`](MULTIPLATFORM_STRATEGY.md).
-La monétisation est cadrée dans [`MONETIZATION_STRATEGY.md`](MONETIZATION_STRATEGY.md)
-et l'identité visuelle Réunion dans [`REUNION_VISUAL_IDENTITY.md`](REUNION_VISUAL_IDENTITY.md).
-
-## Deux versions actuelles
-
-| Version | État | Comment lancer |
-|---|---|---|
-| **Web solo** | ✅ Jouable + défenses | Servir `web/` en HTTP, ouvrir `/client/` |
-| **Roblox**   | ✅ Carte + vagues + tir + défenses serveur | Rojo serve → connecter le plugin Studio |
-
-## Démarrage rapide
-
-### Version web
+### Web (le plus simple pour tester)
 
 ```bash
 npx http-server web -p 5180
 # ouvrir http://localhost:5180/client/
 ```
 
-ZQSD ou flèches pour bouger, souris pour viser et tirer.
-Touches `1`/`2` pour choisir tourelle ou barricade, puis `E` ou clic droit pour
-poser une défense avec les coins.
+**Touches** : ZQSD/flèches = bouger, souris = viser/tirer, `1`/`2` = tourelle
+/barricade, `E` ou clic droit = poser défense, `SHIFT` = saut géant, `TAB` =
+touches, `F1` = paramètres, `G` = galerie, `M` = mission.
 
-### Version Roblox
+### Roblox (le jeu principal)
 
 ```bash
 rojo serve default.project.json
 ```
 
-Puis dans Roblox Studio : ouvrir un place vide, installer le plugin Rojo
-(`rojo plugin install`), cliquer **Connect**. Le jeu se charge avec :
+Puis Studio → ouvrir un place vide → installer plugin Rojo
+(`rojo plugin install`) → cliquer **Connect** → **Play**.
 
-- la carte de La Réunion (île + 2 pitons + 24 villes + océan)
-- les services serveur (vagues, zombies, récompenses, sauvegarde)
-- un tir serveur simple et validé
-- le placement de barricades et tourelles
-- l'UI client (intro + dialogues narratifs)
+Pour publier sur Roblox : suivre [`PUBLISH.md`](PUBLISH.md).
 
-Presser **Play** pour tester.
+---
 
-## Histoire
+## 📚 Documentation organisée
 
-L'histoire complète et la progression des 7 actes sont décrites dans
-[`STORY.md`](STORY.md).
+### 🎯 Pour comprendre le projet (lecture obligatoire)
 
-## Architecture
+| Doc | À quoi ça sert |
+|---|---|
+| [`GAME_KNOWLEDGE.md`](GAME_KNOWLEDGE.md) | **Référence canonique** — la vérité du projet, à lire avant toute modification |
+| [`CAHIER_DES_CHARGES.md`](CAHIER_DES_CHARGES.md) | **Contrat formel** — périmètre, contraintes, critères d'acceptation V1.0 |
+| [`PRODUCT_VISION.md`](PRODUCT_VISION.md) | **Résumé exécutif** — promesse, piliers, boucle de jeu |
 
-```
-web/                       Prototype web solo (HTML/Canvas/JS)
-  client/                  Front : index.html + assets
-  shared/                  Config + constants + story (réutilisé serveur futur)
+### 🎮 Pour comprendre le gameplay
 
-roblox/                    Projet Roblox synchronisé via Rojo
-  ReplicatedStorage/Shared Config, Constants, Remotes, Story
-  ServerScriptService      GameController + Services (Wave/Zombie/...)
-                           + ReunionMap (la carte)
-  StarterPlayer/Scripts    ClientController, StoryUI
+| Doc | À quoi ça sert |
+|---|---|
+| [`STORY.md`](STORY.md) | Pitch + scénario 7 actes + lore créole |
+| [`MISSIONS_DETAILLEES.md`](MISSIONS_DETAILLEES.md) | Histoire + lieux touristiques + objectifs par village |
+| [`GAME_DESIGN.md`](GAME_DESIGN.md) | Boucle, modes, ennemis |
+| [`MARKET_POSITIONING_TOWER_DEFENSE.md`](MARKET_POSITIONING_TOWER_DEFENSE.md) | Positionnement TD coop Roblox |
 
-default.project.json       Mapping Rojo
-```
+### 🛠️ Pour comprendre la tech
 
-Détails dans [`ARCHITECTURE.md`](ARCHITECTURE.md).
+| Doc | À quoi ça sert |
+|---|---|
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | Structure technique (services, Remotes, Rojo) |
+| [`MULTIPLAYER.md`](MULTIPLAYER.md) | Multijoueur Roblox (coop 6 joueurs natif) |
+| [`MULTIPLATFORM_STRATEGY.md`](MULTIPLATFORM_STRATEGY.md) | Roadmap multi-supports (Roblox→Web→Godot mobile) |
+| [`DEPENDENCIES.md`](DEPENDENCIES.md) | Stratégie dépendances (minimales) |
 
-## Documents
+### 🎨 Pour comprendre le design
 
-- [`ARCHITECTURE.md`](ARCHITECTURE.md) — structure technique
-- [`GAME_DESIGN.md`](GAME_DESIGN.md) — boucle, modes, ennemis
-- [`STORY.md`](STORY.md) — scénario et lore
-- [`MARKET_POSITIONING_TOWER_DEFENSE.md`](MARKET_POSITIONING_TOWER_DEFENSE.md) — direction tower defense coop
-- [`SAFETY_LEGAL_FRAMEWORK.md`](SAFETY_LEGAL_FRAMEWORK.md) — règles sécurité jeune public
-- [`DEPENDENCIES.md`](DEPENDENCIES.md) — stratégie dépendances
-- [`PURCHASE_STRATEGY.md`](PURCHASE_STRATEGY.md) — stratégie achats
-- [`MONETIZATION_STRATEGY.md`](MONETIZATION_STRATEGY.md) — revenus, pubs, achats, rétention
-- [`REUNION_VISUAL_IDENTITY.md`](REUNION_VISUAL_IDENTITY.md) — couleurs et style Réunion
-- [`ROADMAP.md`](ROADMAP.md) — étapes V0.1 → V1.0
-- [`CLAUDE_BRIEF.md`](CLAUDE_BRIEF.md) — brief IA
+| Doc | À quoi ça sert |
+|---|---|
+| [`GAME_KNOWLEDGE.md §3`](GAME_KNOWLEDGE.md) | **Palette officielle Réunion** (canonique) |
+| [`REUNION_VISUAL_IDENTITY.md`](REUNION_VISUAL_IDENTITY.md) | Règles d'application + idées skins thématiques |
 
-## Priorités
+### 💰 Pour comprendre la monétisation
 
-1. ✅ Architecture propre
-2. ✅ Prototype web solo jouable
-3. ✅ Prototype Roblox jouable (squelette + map)
-4. ✅ Système de vagues partagé
-5. ✅ Histoire et narration (intro + dialogues + lore)
-6. ✅ Première boucle tower defense : barricades + tourelles
-7. ⏳ Test Studio réel : Saint-Benoît, pluie, volcan, screenshots
-8. ⏳ PNJ vivants et ambiance touristique
-9. ⏳ Publication Roblox : icône, miniature, description, place publique
-10. ⏳ Portage mobile Play Store / iPhone via Godot ou Unity
+| Doc | À quoi ça sert |
+|---|---|
+| [`MONETIZATION_STRATEGY.md`](MONETIZATION_STRATEGY.md) | Revenus Roblox (products, passes, subs, ads), KPIs |
+| [`PURCHASE_STRATEGY.md`](PURCHASE_STRATEGY.md) | Stratégie achats côté développement (assets, etc.) |
 
-## Méthode
+### 🔒 Pour la sécurité et la publication
 
-Le projet doit rester clair pour être repris par plusieurs IA ou développeurs
-(ChatGPT, Claude, Codex, Roblox Studio, GitHub). Chaque fichier est commenté
-simplement, avec une logique facile à relire.
+| Doc | À quoi ça sert |
+|---|---|
+| [`SAFETY_LEGAL_FRAMEWORK.md`](SAFETY_LEGAL_FRAMEWORK.md) | Règles sécurité jeune public (chat, gore, données) |
+| [`ADULT_MODE.md`](ADULT_MODE.md) | Mode +18 par joueur (validation âge serveur) |
+| [`PUBLISH.md`](PUBLISH.md) | Procédure complète publication Roblox (22 étapes) |
+| [`assets/`](assets/) | Icône SVG + miniature SVG + social cards |
+
+### 🗺️ Pour piloter
+
+| Doc | À quoi ça sert |
+|---|---|
+| [`ROADMAP.md`](ROADMAP.md) | Étapes V0.1 → V1.0 |
+| [`CLAUDE_BRIEF.md`](CLAUDE_BRIEF.md) | Brief IA initial (historique) |
+
+---
+
+## ✅ État actuel (V0.x)
+
+### Livré
+
+- ✅ Architecture propre (Rojo + ES modules)
+- ✅ Prototype web solo jouable (canvas 2D, post-process, audio procédural)
+- ✅ Prototype Roblox jouable (terrain voxel, 24 communes, vagues)
+- ✅ Système de vagues partagé (config commune)
+- ✅ Histoire 7 actes + dialogues créoles (mode adulte adouci dispo)
+- ✅ Première boucle tower defense : barricades + tourelles
+- ✅ Map La Réunion avec relief, cascades, lave, pluie est, cycle jour/nuit
+- ✅ Patrimoine : cases créoles, boutiks, lieux de culte, route NRL, street food
+- ✅ Stand street food (samoussa, bouchon, frites, limonade)
+- ✅ Mobile : MobileControls + auto-aim + haptic + tutoriel
+- ✅ Settings joueur : pseudo + date naissance + mode adulte par joueur (≥18)
+- ✅ Missions séquentielles : POI physiques + photo + validation serveur
+- ✅ Collection : 16 achievements + souvenirs persistants + galerie touche G
+- ✅ Multiplayer natif Roblox (coop jusqu'à 6)
+- ✅ Assets publication (icône + miniature + PUBLISH.md + social cards)
+- ✅ Audio procédural (web) + sons rbxasset (Roblox)
+- ✅ Leaderboard web + difficulté qui scale
+
+### En attente
+
+- ⏳ Tests Studio multi-joueur + device mobile (à faire avant publication)
+- ⏳ Publication Roblox (place publique) — voir [`PUBLISH.md`](PUBLISH.md)
+- ⏳ Boss final "Roi-Cendre" — modèle géant unique pour l'Acte VII
+- ⏳ PNJ vivants dans les villes (silhouettes habitants)
+- ⏳ Portage Godot mobile (après validation Roblox)
+
+---
+
+## 📐 Méthode et règles
+
+1. **GAME_KNOWLEDGE.md est la source de vérité**. En cas de conflit avec un
+   autre document, ce fichier prévaut.
+2. **CAHIER_DES_CHARGES.md est le contrat**. Toute évolution majeure du
+   périmètre doit y être consignée.
+3. **Aucun gore, aucun chat custom, aucun pay-to-win**. Cf.
+   [`SAFETY_LEGAL_FRAMEWORK.md`](SAFETY_LEGAL_FRAMEWORK.md).
+4. **Tout serveur-autoritaire** côté Roblox. Le client ne décide rien de
+   sensible (dégâts, score, coins, sauvegarde).
+5. **Commits conventionnels en français** (`feat:`, `fix:`, `chore:`,
+   `docs:`). Messages courts, descriptifs, qui expliquent le **pourquoi**.
+6. **Le projet doit rester lisible** par n'importe quel humain ou IA qui
+   reprend la suite. Commentaires en français, structure claire.
+
+## 🤝 Crédits
+
+Projet conçu et piloté par **boss974** (Grondin Mickaël, La Réunion).
+Implémentation et docs : assistance IA multi-agents (Claude, ChatGPT, Codex).
