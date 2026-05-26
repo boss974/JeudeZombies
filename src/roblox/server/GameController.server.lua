@@ -3,19 +3,19 @@
 
     Point d'entrée serveur du prototype Roblox.
 
-    Ce fichier charge la configuration, génère la map prototype et vérifie
-    les règles principales du jeu.
+    Compatible Rojo :
+    - ce fichier est placé directement dans ServerScriptService
+    - les services Roblox du projet sont aussi placés directement dans ServerScriptService
 ]]
 
 local ServerScriptService = game:GetService("ServerScriptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Services = ServerScriptService:WaitForChild("Services")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 
 local Config = require(Shared:WaitForChild("Config"))
-local MapPathService = require(Services:WaitForChild("MapPathService"))
-local UnitSlotService = require(Services:WaitForChild("UnitSlotService"))
+local MapPathService = require(ServerScriptService:WaitForChild("MapPathService"))
+local UnitSlotService = require(ServerScriptService:WaitForChild("UnitSlotService"))
 
 print("[JeuDeZombies] Démarrage serveur : " .. Config.Game.Name)
 
