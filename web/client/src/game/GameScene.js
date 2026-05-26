@@ -1,7 +1,9 @@
 import { CONFIG } from "../../../shared/config.js";
 import { DEFENSE_TYPE, STATE, STORAGE_KEYS } from "../../../shared/constants.js";
+import { CityScene } from "./CityScene.js";
 import { Defense } from "./Defense.js";
 import { Input } from "./input.js";
+import { Minimap } from "./Minimap.js";
 import { Player } from "./Player.js";
 import { WaveManager } from "./WaveManager.js";
 
@@ -22,6 +24,14 @@ export class GameScene {
     this.defenses = [];
     this.selectedDefense = DEFENSE_TYPE.TURRET;
     this.worldTime = 0;
+    // Décor dynamique par ville + mini-carte radar
+    this.cityScene = new CityScene();
+    this.minimap = new Minimap();
+    this.mission = null;            // setté par main.js avant start()
+    // Post-processing : screen shake + flash dégât + vignette
+    this._shake = 0;                // intensité du tremblement (pixels)
+    this._damageFlash = 0;          // 0..1, fade out après hit
+    this._lastPlayerHp = null;
 
     this.bestScore = parseInt(localStorage.getItem(STORAGE_KEYS.BEST_SCORE) || "0", 10);
 
@@ -176,6 +186,18 @@ export class GameScene {
     }
 
     this._refreshHud();
+
+    // Post-processing : si HP a baissé depuis la frame précédente, déclenche
+    // un flash rouge + screen shake. Décline naturellement avec dt.
+    const hpNow = this.player.hp;
+    if (this._lastPlayerHp !== null && hpNow < this._lastPlayerHp) {
+      const lost = this._lastPlayerHp - hpNow;
+      this._damageFlash = Math.min(1, this._damageFlash + lost / 30);
+      this._shake = Math.min(10, this._shake + lost / 10);
+    }
+    this._lastPlayerHp = hpNow;
+    this._damageFlash = Math.max(0, this._damageFlash - dt * 1.4);
+    this._shake = Math.max(0, this._shake - dt * 18);
   }
 
   _saveBest() {
@@ -248,23 +270,30 @@ export class GameScene {
 
   _draw() {
     const { ctx } = this;
-    // Fond
-    ctx.fillStyle = this._isNight() ? "#120f18" : "#1a1a1a";
-    ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+    const tSec = performance.now() / 1000;
 
-    // Grille subtile
-    ctx.strokeStyle = "#262626";
-    ctx.lineWidth = 1;
-    for (let x = 0; x < this.arena.width; x += 40) {
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, this.arena.height); ctx.stroke();
+    // Screen shake : décale toute la scène d'un petit offset aléatoire
+    // pendant un coup. Annule à la fin du _draw via ctx.restore().
+    ctx.save();
+    if (this._shake > 0.1) {
+      const sx = (Math.random() - 0.5) * this._shake;
+      const sy = (Math.random() - 0.5) * this._shake;
+      ctx.translate(sx, sy);
     }
-    for (let y = 0; y < this.arena.height; y += 40) {
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.arena.width, y); ctx.stroke();
+
+    // === Décor de ville ===
+    // Le CityScene gère lui-même un fallback si this.mission est null.
+    this.cityScene.draw(ctx, this.mission, this.arena, tSec);
+
+    // Overlay nuit (la mission peut être de jour, mais le cycle interne reste)
+    if (this._isNight()) {
+      ctx.fillStyle = "rgba(8,6,16,0.35)";
+      ctx.fillRect(0, 0, this.arena.width, this.arena.height);
     }
 
     if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER && this.state !== STATE.PAUSED) return;
 
-    // Particules
+    // Particules (impacts)
     for (const p of this.particles) {
       ctx.globalAlpha = Math.max(0, p.life * 2);
       ctx.fillStyle = p.color;
@@ -272,22 +301,38 @@ export class GameScene {
     }
     ctx.globalAlpha = 1;
 
-    // Zombies
-    for (const z of this.zombies) z.draw(ctx);
+    // Zombies (avec animation basée sur time)
+    for (const z of this.zombies) z.draw(ctx, tSec);
 
     // Defenses
     for (const d of this.defenses) d.draw(ctx);
 
-    // Bullets
-    ctx.fillStyle = "#ffd76b";
+    // Bullets : avec trail/glow pour effet "tracer brûlant"
     for (const b of this.bullets) {
+      // Halo extérieur orange transparent
+      ctx.fillStyle = "rgba(255,140,40,0.35)";
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r * 2.4, 0, Math.PI * 2);
+      ctx.fill();
+      // Trail derrière (3 cercles décroissants dans la direction opposée)
+      const sp = Math.hypot(b.vx, b.vy) || 1;
+      for (let i = 1; i <= 3; i++) {
+        const tx = b.x - (b.vx / sp) * i * 4;
+        const ty = b.y - (b.vy / sp) * i * 4;
+        ctx.fillStyle = `rgba(255,215,107,${0.6 - i * 0.18})`;
+        ctx.beginPath();
+        ctx.arc(tx, ty, b.r * (1.0 - i * 0.2), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Cœur brillant
+      ctx.fillStyle = "#fff6c8";
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Joueur
-    this.player.draw(ctx);
+    // Joueur (avec animation)
+    this.player.draw(ctx, tSec);
 
     // Preview defense
     if (this.state === STATE.PLAYING) this._drawDefensePreview(ctx);
@@ -297,12 +342,43 @@ export class GameScene {
       ctx.save();
       const alpha = Math.min(1, this.waveManager.messageTimer);
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = "#f25555";
+      // Fond foncé pour lisibilité par-dessus n'importe quel décor
+      ctx.fillStyle = "rgba(0,0,0,0.55)";
+      ctx.fillRect(0, this.arena.height / 2 - 80, this.arena.width, 70);
+      ctx.fillStyle = "#ff6b35";
       ctx.font = "bold 42px Segoe UI, sans-serif";
       ctx.textAlign = "center";
       ctx.fillText(this.waveManager.message, this.arena.width / 2, this.arena.height / 2 - 40);
       ctx.restore();
     }
+
+    // Restore le screen shake AVANT les effets full-screen (qui ne doivent
+    // pas trembler avec la scène).
+    ctx.restore();
+
+    // ========================================================================
+    // POST-PROCESSING fixe (ne tremble pas)
+    // ========================================================================
+
+    // Vignette permanente : assombrissement périphérique pour faire ressortir
+    // le centre du gameplay
+    const vignette = ctx.createRadialGradient(
+      this.arena.width / 2, this.arena.height / 2, this.arena.height * 0.45,
+      this.arena.width / 2, this.arena.height / 2, this.arena.height * 0.85
+    );
+    vignette.addColorStop(0, "rgba(0,0,0,0)");
+    vignette.addColorStop(1, "rgba(0,0,0,0.45)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+
+    // Flash rouge plein écran sur dégâts
+    if (this._damageFlash > 0.01) {
+      ctx.fillStyle = `rgba(255,30,30,${this._damageFlash * 0.45})`;
+      ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+    }
+
+    // Mini-carte radar (par-dessus la vignette mais sous le HUD HTML)
+    this.minimap.draw(ctx, this.arena, this.player, this.zombies, this.defenses, this.bullets);
   }
 
   _drawDefensePreview(ctx) {

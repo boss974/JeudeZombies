@@ -43,6 +43,7 @@ function currentMission() {
 // Scene
 // ============================================================================
 const scene = new GameScene(canvas, hud);
+scene.mission = currentMission();   // décor initial = mission en cours
 window.__scene = scene;
 
 scene.onWaveStart = () => showDialog(randomLine("waveStart"), "default");
@@ -122,6 +123,7 @@ function startGame() {
   victory.classList.add("hidden");
   hudEl.classList.remove("hidden");
   hud.mission.textContent = mission.city;
+  scene.mission = mission;   // décor synchronisé avec la mission qui démarre
   scene.start();
   // Petit délai pour que l'intro de mission s'affiche après le démarrage
   setTimeout(() => showDialog(`${mission.title} — ${mission.city}`, "default"), 600);
