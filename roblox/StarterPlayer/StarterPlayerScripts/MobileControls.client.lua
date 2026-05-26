@@ -173,7 +173,35 @@ fireBtn.InputEnded:Connect(function(input)
 	if input.UserInputType == Enum.UserInputType.Touch then firing = false end
 end)
 
--- Boucle de tir : envoie au serveur tant que firing
+-- Helper : trouve le zombie le plus proche pour auto-aim (mobile sans souris)
+local function findClosestZombie(playerPos)
+	local Workspace = game:GetService("Workspace")
+	local best, bestDist = nil, 80   -- range max de l'auto-aim
+	for _, m in ipairs(Workspace:GetChildren()) do
+		if m:IsA("Model") and m:GetAttribute("ZombieType") and m.PrimaryPart then
+			local hum = m:FindFirstChildOfClass("Humanoid")
+			if hum and hum.Health > 0 then
+				local d = (m.PrimaryPart.Position - playerPos).Magnitude
+				if d < bestDist then best, bestDist = m, d end
+			end
+		end
+	end
+	return best
+end
+
+-- Haptic feedback : Roblox HapticService → vibre sur tir/dégâts
+local HapticService = game:GetService("HapticService")
+local function pulse(intensity, duration)
+	-- Sur mobile et certaines manettes Roblox supporte la vibration
+	pcall(function()
+		HapticService:SetMotor(Enum.UserInputType.Touch, Enum.VibrationMotor.Large, intensity)
+		task.delay(duration or 0.1, function()
+			HapticService:SetMotor(Enum.UserInputType.Touch, Enum.VibrationMotor.Large, 0)
+		end)
+	end)
+end
+
+-- Boucle de tir : envoie au serveur tant que firing (avec AUTO-AIM mobile)
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local shootR = Remotes:FindFirstChild("ShootRequest")
 if shootR then
@@ -183,14 +211,41 @@ if shootR then
 				local char = player.Character
 				local root = char and char:FindFirstChild("HumanoidRootPart")
 				if root then
-					-- Vise dans la direction du joueur (forward) — pas de souris sur mobile
-					local target = root.Position + root.CFrame.LookVector * 50
+					-- Auto-aim : cherche le zombie le plus proche dans un rayon de 80 studs
+					local target
+					local closest = findClosestZombie(root.Position)
+					if closest then
+						target = closest.PrimaryPart.Position
+					else
+						-- Pas de cible → tire vers l'avant
+						target = root.Position + root.CFrame.LookVector * 50
+					end
 					shootR:FireServer(target)
+					pulse(0.2, 0.05)  -- petite vibration à chaque tir
 				end
 			end
-			task.wait(0.06)
+			task.wait(0.08)
 		end
 	end)
 end
+
+-- Vibration sur dégâts du joueur (écoute changement HP)
+task.spawn(function()
+	while true do
+		local char = player.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			local lastHp = hum.Health
+			hum.HealthChanged:Connect(function(newHp)
+				if newHp < lastHp then
+					pulse(0.7, 0.15)   -- vibration plus forte sur dégât
+				end
+				lastHp = newHp
+			end)
+			break
+		end
+		task.wait(0.5)
+	end
+end)
 
 print("[MobileControls] Boutons tactiles installes (saut, defense, arme, info, menu, tir).")
