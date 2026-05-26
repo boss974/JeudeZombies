@@ -367,6 +367,14 @@ html, body {
   box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
 }
 
+#hud-hp-fill-p2 {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-emeraude) 0%, var(--c-hibiscus) 55%, #6a1a3a 100%);
+  width: 100%;
+  transition: width 0.18s ease-out;
+  box-shadow: inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
 /* ============================================================================
  * Dialogue narratif (bas d'écran)
  * ============================================================================ */

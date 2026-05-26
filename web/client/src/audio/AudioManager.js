@@ -209,6 +209,53 @@ export class AudioManager {
     else this._rise([NOTE.c3, NOTE.g3], 0.04);
   }
 
+  // Explosion d'un exploder : boom grave + souffle large + ping métallique
+  exploderBoom() {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    // Boom grave
+    this._tone(58, t, 0.32, 0.32, "sawtooth", 0.002, 28);
+    // Souffle moyen
+    this._noise(t, 0.18, 0.16, 420, "bandpass");
+    // Crackle haute fréquence
+    this._noise(t + 0.05, 0.22, 0.08, 2400, "highpass");
+    // Ping métallique du shrapnel
+    this._tone(820, t + 0.04, 0.08, 0.05, "triangle", 0.003, 320);
+  }
+
+  // Tir qui ricoche sur un bouclier : ping métallique aigu
+  shieldBlock() {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    this._tone(1280, t, 0.08, 0.12, "triangle", 0.002, 880);
+    this._noise(t, 0.04, 0.06, 1800, "bandpass");
+  }
+
+  // Cri du boss en phase 3 : grondement long descendant
+  bossRoar() {
+    if (this._playSample("boss", 1.0, 0.62)) return;
+    this._ensure();
+    const t = this.ctx.currentTime;
+    this._tone(72, t, 0.6, 0.28, "sawtooth", 0.05, 32);
+    this._noise(t + 0.06, 0.5, 0.18, 260, "lowpass");
+    this._tone(220, t + 0.1, 0.4, 0.1, "square", 0.04, 90);
+  }
+
+  // Dash du boss : whoosh court de déplacement rapide
+  bossDash() {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    this._noise(t, 0.12, 0.1, 380, "bandpass");
+    this._tone(140, t + 0.02, 0.1, 0.08, "sawtooth", 0.005, 60);
+  }
+
+  // Popup score : petit tintement court qui accompagne le +XX
+  scorePopup() {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    this._tone(NOTE.a4, t, 0.08, 0.04, "triangle", 0.002, NOTE.c4);
+  }
+
   weaponChange(weapon = this.weapon) {
     this._ensure();
     if (this._playSample("weapon", 0.62, weapon === "volcano" ? 0.72 : weapon === "shotgun" ? 0.88 : 1.1)) return;

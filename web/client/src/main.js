@@ -44,6 +44,8 @@ const hud = {
   coins: document.getElementById("hud-coins"),
   best: document.getElementById("hud-best"),
   hpFill: document.getElementById("hud-hp-fill"),
+  hpFillP2: document.getElementById("hud-hp-fill-p2"),
+  rowP2: document.getElementById("hud-row-p2"),
   phase: document.getElementById("hud-phase"),
   combo: document.getElementById("hud-combo"),
   pseudo: document.getElementById("hud-pseudo"),
@@ -164,13 +166,21 @@ scene.onBossPhaseChange = (phase) => {
     showDialog("☢ PHASE 3 — Lave + cri assourdissant ! Cours, bat'carré !", "danger");
   }
 };
-scene.onBossDash = () => audio.hit?.();
+scene.onBossDash = () => audio.bossDash?.();
 scene.onBossRoar = () => {
-  audio.bossWarning?.("boss");
+  audio.bossRoar?.();
   showDialog("ROAAAR ! Tu es ralenti !", "danger");
 };
 scene.onExploderBoom = () => {
-  audio.hit?.();
+  audio.exploderBoom?.();
+};
+scene.onScorePopup = (gain) => {
+  // Seulement un petit ping pour les gros gains (combo) pour ne pas saturer
+  if (gain >= 25) audio.scorePopup?.();
+};
+scene.onCoopStart = () => {
+  hud.rowP2?.classList.remove("hidden");
+  showDialog("🎮 Coop activé ! Manette branchée = P2 (stick gauche bouge, stick droit vise, RT tire, LB pose défense).", "good");
 };
 
 scene.onGameOver = ({ wave, score, coins }) => {
@@ -350,6 +360,11 @@ setInterval(() => {
   if (hudEl.classList.contains("hidden")) return;
   if (hud.pseudo) hud.pseudo.textContent = getPlayerName() || "Joueur";
   if (hud.difficulty) hud.difficulty.textContent = `x${(scene.difficulty || 1).toFixed(2)}`;
+  // Toggle de la barre P2 selon présence de player2
+  if (hud.rowP2) {
+    if (scene.player2) hud.rowP2.classList.remove("hidden");
+    else hud.rowP2.classList.add("hidden");
+  }
   if (hud.buffs && scene.buffs) {
     const t = scene.worldTime || 0;
     const list = [];

@@ -2,7 +2,7 @@ import { CONFIG } from "../../../shared/config.js";
 import { DEFENSE_TYPE, PICKUP_TYPE, STATE, STORAGE_KEYS } from "../../../shared/constants.js";
 import { CityScene } from "./CityScene.js";
 import { Defense } from "./Defense.js";
-import { Input } from "./input.js";
+import { GamepadInput, Input, pollFirstGamepad } from "./input.js";
 import { Minimap } from "./Minimap.js";
 import { Pickup } from "./Pickup.js";
 import { Player } from "./Player.js";
@@ -17,6 +17,8 @@ export class GameScene {
     this.ctx = canvas.getContext("2d");
     this.hud = hud;
     this.input = new Input(canvas);
+    this.input2 = new GamepadInput();         // P2 si manette branchée
+    this.player2 = null;                       // Player 2 instancié au reset si gamepad
     this.arena = { width: canvas.width, height: canvas.height };
 
     this.state = STATE.MENU;
@@ -29,6 +31,10 @@ export class GameScene {
     this.lavaTrails = [];              // flaques de lave laissées par le boss en phase 3
     this.bossRoarSlow = 0;             // worldTime jusqu'auquel le joueur est ralenti
     this.bossRoarMul = 0.45;           // multiplicateur de speed pendant le slow
+    this.floaters = [];                // textes "+15" qui flottent vers le haut sur kill
+    this.corpses  = [];                // zombies morts en fade-out
+    this.shockwaves = [];              // anneaux d'onde de choc (exploder, roar, boss spawn)
+    this.bossFlash = 0;                // alpha plein écran orange quand boss spawn
     // Buffs temporaires actifs (timestamps en sec depuis worldTime)
     this.buffs = { damage: 0, speed: 0, magnet: 0 };
     this.bonuses = computeBonuses(loadUpgrades());
@@ -52,7 +58,15 @@ export class GameScene {
   }
 
   reset(options = {}) {
-    this.player = new Player(this.arena.width / 2, this.arena.height / 2);
+    this.player = new Player(this.arena.width / 2 - 30, this.arena.height / 2);
+    // P2 actif uniquement si une manette est branchée. Sinon player2 = null (mode solo classique).
+    if (pollFirstGamepad()) {
+      this.player2 = new Player(this.arena.width / 2 + 30, this.arena.height / 2);
+      this.player2.isPlayer2 = true;           // pour la palette de rendu distincte
+      this.onCoopStart?.();
+    } else {
+      this.player2 = null;
+    }
     this.difficulty = options.difficulty || 1;
     this.waveManager = new WaveManager(this.arena, this.difficulty);
     this.waveManager.start();
@@ -62,6 +76,10 @@ export class GameScene {
     this.pickups = [];
     this.lavaTrails = [];
     this.bossRoarSlow = 0;
+    this.floaters = [];
+    this.corpses = [];
+    this.shockwaves = [];
+    this.bossFlash = 0;
     this.particles = [];
     this.score = 0;
     this.coins = 24;
@@ -98,40 +116,70 @@ export class GameScene {
 
   _update(dt) {
     // Applique les multiplicateurs permanents (upgrades) + temporaires (pickups + roar boss)
-    // AVANT l'update du joueur.
+    // AVANT l'update des joueurs.
     const speedBuff = this.buffs.speed > this.worldTime ? 1.3 : 1;
     const roarSlow  = this.bossRoarSlow > this.worldTime ? this.bossRoarMul : 1;
-    this.player.speedMul = (this.bonuses?.speedMul || 1) * speedBuff * roarSlow;
-    this.player.fireRateMul = (this.bonuses?.fireRateMul || 1);
+    const speedMul    = (this.bonuses?.speedMul || 1) * speedBuff * roarSlow;
+    const fireRateMul = (this.bonuses?.fireRateMul || 1);
+    this.player.speedMul = speedMul;
+    this.player.fireRateMul = fireRateMul;
+    if (this.player2) {
+      this.player2.speedMul = speedMul;
+      this.player2.fireRateMul = fireRateMul;
+      // Met à jour la "souris virtuelle" du gamepad AVANT update (sinon aim à 1 frame retard)
+      this.input2.updateFromGamepad({ x: this.player2.x, y: this.player2.y });
+    }
 
     this.player.update(dt, this.input, this.arena);
+    if (this.player2 && this.player2.alive) this.player2.update(dt, this.input2, this.arena);
     this.worldTime += dt;
 
-    // Tir
+    // Tir P1
     if (this.input.mouse.down && this.player.canFire()) {
       const b = this.player.fire();
-      // Applique les bonus permanents + buff temporaire damage (pickup ammo)
       const dmgMul = (this.buffs.damage > this.worldTime) ? 1.5 : 1;
       b.damage = Math.round(b.damage * dmgMul + (this.bonuses?.damageBonus || 0));
       this.bullets.push(b);
       this.onPlayerFire?.();
-      // Blague créole occasionnelle au tir (15% de chance, throttle ~3s)
       const now = performance.now();
       if (Math.random() < 0.15 && now - (this._lastShootLine || 0) > 3000) {
         this._lastShootLine = now;
         this.onPlayerShoot?.();
       }
     }
+    // Tir P2 (manette)
+    if (this.player2 && this.player2.alive && this.input2.mouse.down && this.player2.canFire()) {
+      const b = this.player2.fire();
+      const dmgMul = (this.buffs.damage > this.worldTime) ? 1.5 : 1;
+      b.damage = Math.round(b.damage * dmgMul + (this.bonuses?.damageBonus || 0));
+      this.bullets.push(b);
+      this.onPlayerFire?.();
+    }
 
+    // Pose de défense P1 (clic droit ou E)
     if (this.input.consumeRightClick() || this.input.consumeKey("KeyE")) {
       this._tryPlaceDefense(this.input.mouse.x, this.input.mouse.y);
+    }
+    // Pose de défense P2 (LB)
+    if (this.player2 && this.player2.alive && (this.input2.consumeRightClick() || this.input2.consumeKey("KeyE"))) {
+      this._tryPlaceDefense(this.input2.mouse.x, this.input2.mouse.y);
     }
 
     // Vague
     const spawned = this.waveManager.update(dt, this.zombies, this._isNight());
     if (spawned) {
       // Boss : câble les callbacks pour les patterns spéciaux (dash/spawn/roar/lava)
-      if (spawned.type === "boss") this._wireBossCallbacks(spawned);
+      if (spawned.type === "boss") {
+        this._wireBossCallbacks(spawned);
+        // Effets dramatiques au spawn boss : flash plein écran + shockwave
+        this.bossFlash = 1;
+        this.shockwaves.push({
+          x: spawned.x, y: spawned.y,
+          r: 0, maxR: 280, life: 0.8, maxLife: 0.8,
+          color: "rgba(255, 30, 30, 0.7)"
+        });
+        this._shake = Math.min(16, this._shake + 8);
+      }
       this.zombies.push(spawned);
     }
 
@@ -144,8 +192,11 @@ export class GameScene {
       b.life -= dt;
     }
 
-    // Zombies
-    for (const z of this.zombies) z.update(dt, this.player);
+    // Zombies (ciblent le joueur le plus proche s'il y a P2)
+    for (const z of this.zombies) {
+      const target = this._nearestPlayerTo(z);
+      z.update(dt, target);
+    }
 
     // Exploders qui se sont auto-détruits au contact du joueur pendant z.update()
     for (const z of this.zombies) {
@@ -189,36 +240,40 @@ export class GameScene {
       }
     }
 
-    // Lava trails : décompte de vie + dégâts au joueur s'il marche dedans
+    // Lava trails : décompte de vie + dégâts aux joueur(s) qui marchent dedans
     for (const lt of this.lavaTrails) {
       lt.life -= dt;
-      if (lt.life > 0) {
-        const dx = this.player.x - lt.x;
-        const dy = this.player.y - lt.y;
-        if (dx * dx + dy * dy <= lt.r * lt.r) {
-          // Inflige dommages au joueur (sans invuln pour que ça pique vraiment de marcher dedans)
-          if (this.player.invuln <= 0 && this.player.alive) {
-            const dmg = lt.dps * dt;
-            this.player.hp -= dmg;
-            if (this.player.hp <= 0) { this.player.hp = 0; this.player.alive = false; }
-          }
+      if (lt.life <= 0) continue;
+      const players = [this.player, this.player2].filter(p => p && p.alive);
+      for (const tp of players) {
+        const dx = tp.x - lt.x, dy = tp.y - lt.y;
+        if (dx * dx + dy * dy <= lt.r * lt.r && tp.invuln <= 0) {
+          const dmg = lt.dps * dt;
+          tp.hp -= dmg;
+          if (tp.hp <= 0) { tp.hp = 0; tp.alive = false; }
         }
       }
     }
     this.lavaTrails = this.lavaTrails.filter(lt => lt.life > 0);
 
-    // Pickups : update + ramassage
+    // Pickups : update + ramassage (chaque pickup va vers le joueur le plus proche)
     const magnetActive = this.buffs.magnet > this.worldTime;
     for (const p of this.pickups) {
-      p.update(dt, this.player, magnetActive);
-      if (p.tryPickup(this.player)) {
-        this._applyPickup(p.type);
+      const target = this._nearestPlayerTo(p);
+      p.update(dt, target, magnetActive);
+      // Essaye le ramassage avec chaque joueur vivant
+      const players = [this.player, this.player2].filter(pl => pl && pl.alive);
+      for (const pl of players) {
+        if (p.tryPickup(pl)) {
+          this._applyPickup(p.type, pl);
+          break;
+        }
       }
     }
     this.pickups = this.pickups.filter(p => p.alive);
     // Décompte des buffs (uniquement visuel ; les check sont par worldTime)
 
-    // Collisions zombies -> joueur
+    // Collisions zombies -> joueur(s)
     for (const z of this.zombies) {
       if (!z.alive) continue;
       const blockingDefense = this._nearestBarricade(z);
@@ -229,21 +284,24 @@ export class GameScene {
         }
         continue;
       }
-      const dx = z.x - this.player.x, dy = z.y - this.player.y;
-      const rr = (z.r + this.player.r) * (z.r + this.player.r);
-      if (dx * dx + dy * dy <= rr && z.touchCooldown <= 0) {
-        if (this.player.hit(z.damage)) {
-          z.touchCooldown = 0.5;
-          this.onPlayerDamaged?.();
-          // Blague créole quand on se prend un coup (throttle ~2s)
-          const now = performance.now();
-          if (now - (this._lastHitLine || 0) > 2000) {
-            this._lastHitLine = now;
-            this.onPlayerHit?.();
-            // Si HP critique, ligne "lowHp" plutôt
-            if (this.player.hp / CONFIG.player.maxHp < 0.25) {
-              setTimeout(() => this.onLowHp?.(), 300);
+      // Teste contre chaque joueur vivant
+      const targets = [this.player, this.player2].filter(p => p && p.alive);
+      for (const tp of targets) {
+        const dx = z.x - tp.x, dy = z.y - tp.y;
+        const rr = (z.r + tp.r) * (z.r + tp.r);
+        if (dx * dx + dy * dy <= rr && z.touchCooldown <= 0) {
+          if (tp.hit(z.damage)) {
+            z.touchCooldown = 0.5;
+            this.onPlayerDamaged?.();
+            const now = performance.now();
+            if (now - (this._lastHitLine || 0) > 2000) {
+              this._lastHitLine = now;
+              this.onPlayerHit?.();
+              if (tp.hp / (tp.maxHp || CONFIG.player.maxHp) < 0.25) {
+                setTimeout(() => this.onLowHp?.(), 300);
+              }
             }
+            break;  // un seul joueur touché par frame par ce zombie
           }
         }
       }
@@ -273,6 +331,28 @@ export class GameScene {
       p.life -= dt;
     }
 
+    // Floaters (textes "+15") montent et fadent
+    for (const f of this.floaters) {
+      f.y += f.vy * dt;
+      f.life -= dt;
+    }
+    this.floaters = this.floaters.filter(f => f.life > 0);
+
+    // Corpses fade out
+    for (const c of this.corpses) c.life -= dt;
+    this.corpses = this.corpses.filter(c => c.life > 0);
+
+    // Shockwaves expansion
+    for (const sw of this.shockwaves) {
+      sw.life -= dt;
+      const t = 1 - (sw.life / sw.maxLife);  // 0 → 1
+      sw.r = sw.maxR * t;
+    }
+    this.shockwaves = this.shockwaves.filter(sw => sw.life > 0);
+
+    // Boss flash décroissant
+    this.bossFlash = Math.max(0, this.bossFlash - dt * 1.4);
+
     // Nettoyage
     this.bullets = this.bullets.filter(b => b.life > 0
       && b.x > -10 && b.x < this.arena.width + 10
@@ -281,8 +361,9 @@ export class GameScene {
     this.defenses = this.defenses.filter(d => d.alive);
     this.particles = this.particles.filter(p => p.life > 0);
 
-    // Game over
-    if (!this.player.alive) {
+    // Game over : si coop, attendre que les DEUX joueurs soient morts
+    const allDead = !this.player.alive && (!this.player2 || !this.player2.alive);
+    if (allDead) {
       this.state = STATE.GAMEOVER;
       this._saveBest();
       this.onGameOver?.({ wave: this.waveManager.wave, score: this.score, coins: this.coins });
@@ -317,34 +398,73 @@ export class GameScene {
     this.hud.score.textContent = this.score;
     this.hud.coins.textContent = this.coins;
     this.hud.best.textContent  = this.bestScore;
-    this.hud.hpFill.style.width = `${(this.player.hp / CONFIG.player.maxHp) * 100}%`;
+    const maxHp1 = this.player.maxHp || CONFIG.player.maxHp;
+    this.hud.hpFill.style.width = `${(this.player.hp / maxHp1) * 100}%`;
     if (this.hud.phase) this.hud.phase.textContent = this._isNight() ? "Nuit" : "Jour";
     if (this.hud.combo) this.hud.combo.textContent = `x${this.combo}`;
+    // Barre P2 (toggle visibilité de la row via attribut sur le scene)
+    if (this.hud.hpFillP2) {
+      if (this.player2) {
+        const maxHp2 = this.player2.maxHp || CONFIG.player.maxHp;
+        const w = Math.max(0, (this.player2.hp / maxHp2) * 100);
+        this.hud.hpFillP2.style.width = `${w}%`;
+      }
+    }
   }
 
   _registerKill(zombie) {
     this.combo = Math.min(5, this.combo + 1);
     this.comboTimer = 3.5;
-    this.score += Math.round(zombie.score * this.combo);
+    const scoreGain = Math.round(zombie.score * this.combo);
+    this.score += scoreGain;
     const coinBase = zombie.coins + (this.combo >= 3 ? 1 : 0) + (this.combo >= 5 ? 1 : 0);
-    this.coins += Math.round(coinBase * (this.bonuses?.coinMul || 1));
+    const coinGain = Math.round(coinBase * (this.bonuses?.coinMul || 1));
+    this.coins += coinGain;
     this.onCombo?.(this.combo);
+    // Popup "+XX" qui monte au-dessus du zombie tué (en jaune si combo >= 3)
+    const isComboFlare = this.combo >= 3;
+    this.floaters.push({
+      x: zombie.x,
+      y: zombie.y - zombie.r - 4,
+      vy: -38,
+      life: 1.1,
+      text: `+${scoreGain}`,
+      color: isComboFlare ? "#ffe6a0" : "#f4b942",
+      size: isComboFlare ? 18 : 15
+    });
+    if (coinGain > 0) {
+      this.floaters.push({
+        x: zombie.x + 18,
+        y: zombie.y - zombie.r - 4,
+        vy: -28,
+        life: 0.95,
+        text: `+${coinGain}¢`,
+        color: "#ffb84a",
+        size: 12
+      });
+    }
+    // Corpse fade : un "fantôme" qui s'estompe sur 0.5s à l'emplacement
+    this.corpses.push({
+      x: zombie.x, y: zombie.y, r: zombie.r,
+      color: zombie.color, life: 0.5, maxLife: 0.5
+    });
+    this.onScorePopup?.(scoreGain);
   }
 
   /** Applique l'effet d'un pickup ramassé (heal/ammo/speed/bomb/magnet). */
-  _applyPickup(type) {
+  _applyPickup(type, picker = this.player) {
     if (type === "heal") {
-      const maxHp = this.player.maxHp || CONFIG.player.maxHp;
-      this.player.hp = Math.min(maxHp, this.player.hp + 25);
+      const maxHp = picker.maxHp || CONFIG.player.maxHp;
+      picker.hp = Math.min(maxHp, picker.hp + 25);
     } else if (type === "ammo") {
-      this.buffs.damage = this.worldTime + 8;     // 8s de buff dégâts
+      this.buffs.damage = this.worldTime + 8;     // 8s de buff dégâts (partagé)
     } else if (type === "speed") {
-      this.buffs.speed = this.worldTime + 6;       // 6s de buff vitesse
+      this.buffs.speed = this.worldTime + 6;       // 6s de buff vitesse (partagé)
     } else if (type === "bomb") {
-      // Détruit tous les zombies dans 120px
+      // Détruit tous les zombies dans 120px du joueur qui a ramassé
       for (const z of this.zombies) {
         if (!z.alive) continue;
-        const dx = z.x - this.player.x, dy = z.y - this.player.y;
+        const dx = z.x - picker.x, dy = z.y - picker.y;
         if (dx * dx + dy * dy <= 120 * 120) {
           z.damage_take(9999);
           if (!z.alive) {
@@ -432,11 +552,14 @@ export class GameScene {
       this.zombies.push(minion);
     };
     boss.onRoar = (rx, ry, radius, slowDur, slowMul) => {
-      const dx = this.player.x - rx;
-      const dy = this.player.y - ry;
-      if (dx * dx + dy * dy <= radius * radius) {
-        this.bossRoarSlow = this.worldTime + slowDur;
-        this.bossRoarMul = slowMul;
+      const players = [this.player, this.player2].filter(p => p && p.alive);
+      for (const tp of players) {
+        const dx = tp.x - rx, dy = tp.y - ry;
+        if (dx * dx + dy * dy <= radius * radius) {
+          this.bossRoarSlow = this.worldTime + slowDur;
+          this.bossRoarMul = slowMul;
+          break;
+        }
       }
       this.onBossRoar?.(rx, ry, radius);
       this._spawnRoarRing(rx, ry, radius);
@@ -446,16 +569,19 @@ export class GameScene {
     };
   }
 
-  /** Applique l'AOE d'un exploder mort sur le joueur + zombies voisins. */
+  /** Applique l'AOE d'un exploder mort sur le(s) joueur(s) + zombies voisins. */
   _explodeExploder(z) {
     const r = z.aoeRadius || 80;
     const dmg = z.aoeDamage || 30;
-    // Dommage au joueur s'il est dans le rayon
-    const dx = this.player.x - z.x;
-    const dy = this.player.y - z.y;
-    if (dx * dx + dy * dy <= r * r) {
-      this.player.hit(dmg);
-      this.onPlayerDamaged?.();
+    // Dommage à chaque joueur dans le rayon
+    const players = [this.player, this.player2].filter(p => p && p.alive);
+    for (const tp of players) {
+      const dx = tp.x - z.x;
+      const dy = tp.y - z.y;
+      if (dx * dx + dy * dy <= r * r) {
+        tp.hit(dmg);
+        this.onPlayerDamaged?.();
+      }
     }
     // Dommage friendly-fire aux autres zombies (sans loop infini d'AOE chain)
     for (const other of this.zombies) {
@@ -469,8 +595,13 @@ export class GameScene {
         }
       }
     }
-    // Particules
+    // Particules en gerbe + onde de choc visuelle
     this._spawnHitParticles(z.x, z.y, "#ff7a2a", 24);
+    this.shockwaves.push({
+      x: z.x, y: z.y,
+      r: 0, maxR: r, life: 0.45, maxLife: 0.45,
+      color: "rgba(255, 140, 40, 0.85)"
+    });
     this._shake = Math.min(14, this._shake + 6);
     this.onExploderBoom?.(z.x, z.y, r);
   }
@@ -490,6 +621,17 @@ export class GameScene {
       });
     }
     this._shake = Math.min(14, this._shake + 5);
+  }
+
+  /** Renvoie le joueur vivant le plus proche d'une entité (pour zombies + pickups). */
+  _nearestPlayerTo(entity) {
+    const a = this.player;
+    const b = this.player2;
+    if (!b || !b.alive) return a;
+    if (!a.alive) return b;
+    const dxa = a.x - entity.x, dya = a.y - entity.y;
+    const dxb = b.x - entity.x, dyb = b.y - entity.y;
+    return (dxa * dxa + dya * dya) <= (dxb * dxb + dyb * dyb) ? a : b;
   }
 
   _nearestBarricade(z) {
@@ -548,6 +690,22 @@ export class GameScene {
       ctx.restore();
       return;
     }
+
+    // Corpses : zombies morts qui s'estompent (sous les zombies vivants)
+    for (const c of this.corpses) {
+      const alpha = c.life / c.maxLife;
+      ctx.globalAlpha = alpha * 0.55;
+      ctx.fillStyle = c.color;
+      ctx.beginPath();
+      ctx.arc(c.x, c.y + (1 - alpha) * 6, c.r * (0.9 + (1 - alpha) * 0.3), 0, Math.PI * 2);
+      ctx.fill();
+      // Halo gris au sol
+      ctx.fillStyle = `rgba(40, 20, 10, ${alpha * 0.4})`;
+      ctx.beginPath();
+      ctx.ellipse(c.x, c.y + 4, c.r * 1.2, c.r * 0.4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
 
     // Lava trails (sous les particules pour que les impacts les recouvrent)
     for (const lt of this.lavaTrails) {
@@ -610,8 +768,62 @@ export class GameScene {
       ctx.fill();
     }
 
-    // Joueur (avec animation)
+    // Joueur(s) (P2 sous P1 pour pas masquer le curseur de P1)
+    if (this.player2 && this.player2.alive) this.player2.draw(ctx, tSec);
     this.player.draw(ctx, tSec);
+
+    // Marqueur "P1/P2" au-dessus des joueurs en coop (lisibilité)
+    if (this.player2) {
+      ctx.font = "bold 11px Segoe UI, sans-serif";
+      ctx.textAlign = "center";
+      if (this.player.alive) {
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillText("P1", this.player.x + 1, this.player.y - this.player.r - 9);
+        ctx.fillStyle = "#0099b8";
+        ctx.fillText("P1", this.player.x, this.player.y - this.player.r - 10);
+      }
+      if (this.player2.alive) {
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillText("P2", this.player2.x + 1, this.player2.y - this.player2.r - 9);
+        ctx.fillStyle = "#e91e63";
+        ctx.fillText("P2", this.player2.x, this.player2.y - this.player2.r - 10);
+      }
+      ctx.textAlign = "start";
+    }
+
+    // Shockwaves : anneaux qui s'élargissent (explosion exploder, spawn boss, etc.)
+    for (const sw of this.shockwaves) {
+      const t = 1 - (sw.life / sw.maxLife);  // 0 → 1
+      const alpha = (1 - t) * 0.85;
+      ctx.strokeStyle = sw.color.replace(/[\d.]+\)$/, `${alpha})`);
+      ctx.lineWidth = 4 + (1 - t) * 3;
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+      ctx.stroke();
+      // Anneau secondaire intérieur
+      if (sw.r > 30) {
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(sw.x, sw.y, sw.r * 0.7, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+
+    // Floaters "+15" au-dessus de tout le décor (mais sous le HUD)
+    ctx.textAlign = "center";
+    ctx.font = "bold 16px Segoe UI, sans-serif";
+    for (const f of this.floaters) {
+      const alpha = Math.min(1, f.life * 1.2);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = "rgba(0,0,0,0.65)";
+      ctx.font = `bold ${f.size + 2}px Segoe UI, sans-serif`;
+      ctx.fillText(f.text, f.x + 1, f.y + 1);  // ombre
+      ctx.fillStyle = f.color;
+      ctx.font = `bold ${f.size}px Segoe UI, sans-serif`;
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.globalAlpha = 1;
+    ctx.textAlign = "start";
 
     // Preview defense
     if (this.state === STATE.PLAYING) this._drawDefensePreview(ctx);
@@ -653,6 +865,11 @@ export class GameScene {
     // Flash rouge plein écran sur dégâts
     if (this._damageFlash > 0.01) {
       ctx.fillStyle = `rgba(255,30,30,${this._damageFlash * 0.45})`;
+      ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+    }
+    // Flash orange plein écran au spawn du boss (effet "warning")
+    if (this.bossFlash > 0.01) {
+      ctx.fillStyle = `rgba(255,107,53,${this.bossFlash * 0.42})`;
       ctx.fillRect(0, 0, this.arena.width, this.arena.height);
     }
 

@@ -81,11 +81,12 @@ export class Player {
 
   // time : timestamp en secondes (pour animations indépendantes du mouvement)
   draw(ctx, time = 0) {
-    // Couleurs Réunion : bleu lagon corps, jaune cannelle accents
-    const bodyColor = "#0099b8";       // Bleu Lagon (corps principal)
-    const accentColor = "#f4b942";     // Jaune Cannelle (bandana, équipement)
-    const skinColor = "#e8b48a";       // Peau légèrement bronzée
-    const pantsColor = "#2a3a4a";      // Pantalon sombre
+    // P1 = bleu lagon, P2 = rose hibiscus (palette Réunion distincte).
+    const isP2 = !!this.isPlayer2;
+    const bodyColor   = isP2 ? "#e91e63" : "#0099b8";
+    const accentColor = isP2 ? "#ffe6a0" : "#f4b942";
+    const skinColor   = "#e8b48a";
+    const pantsColor  = isP2 ? "#4a1a2a" : "#2a3a4a";
 
     // Clignote en invulnérabilité (flash blanc)
     const blink = this.invuln > 0 && Math.floor(this.invuln * 20) % 2 === 0;
