@@ -51,6 +51,7 @@ local KEYBINDS = {
 	{ "Marche →",  "Ramasser pickup" },
 	{ "Portail →", "Téléporter ville" },
 	{ "TAB",       "Afficher / cacher ceci" },
+	{ "F1",        "Paramètres (pseudo / mode)" },
 	{ "/",         "Chat Roblox" },
 }
 

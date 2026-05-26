@@ -1,10 +1,10 @@
 -- SettingsUI.client.lua
--- Écran de paramètres affiché APRÈS l'intro la première fois (HasCompletedSetup = false).
--- - Pseudo (TextBox)
--- - Date de naissance JJ/MM/AAAA (3 TextBox)
--- - Checkbox mode adulte (+18) — désactivée si âge < 18
--- - Panneau "Touches" statique à droite
--- - Bouton "Commencer à jouer" (envoie SaveSettings au serveur)
+-- Écran de paramètres NON-BLOQUANT :
+-- - Le jeu démarre en mode enfant par défaut (jamais d'écran qui bloque)
+-- - Accessible à tout moment via la touche F1
+-- - Si HasCompletedSetup=false ET que le joueur ouvre F1, le panneau apparaît
+-- - Timeout 3s si le serveur ne répond pas → fermeture forcée
+-- - Bouton "Passer (mode enfant)" pour skip sans envoyer au serveur
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -259,6 +259,31 @@ local function buildUI()
 			BirthDate         = birthDate,
 			AdultModeEnabled  = adultChecked,
 		})
+		-- Timeout : si serveur ne répond pas en 3s, on ferme quand même
+		-- (le serveur a peut-être déjà enregistré, l'UI ne doit pas bloquer)
+		task.delay(3, function()
+			if settingsScreen and statusLabel and statusLabel.Text == "Envoi en cours..." then
+				statusLabel.Text = "Pas de réponse, fermeture automatique."
+				task.wait(0.6)
+				if settingsScreen then settingsScreen:Destroy(); settingsScreen = nil end
+			end
+		end)
+	end)
+
+	-- Bouton "Passer" : ferme l'UI sans envoyer au serveur (mode enfant par défaut)
+	local skipBtn = Instance.new("TextButton")
+	skipBtn.Size = UDim2.new(0, 180, 0, 30)
+	skipBtn.Position = UDim2.new(0.5, -90, 1, -36)
+	skipBtn.BackgroundColor3 = Color3.fromRGB(60, 50, 40)
+	skipBtn.Text = "Passer (mode enfant)"
+	skipBtn.TextColor3 = Color3.fromRGB(220, 200, 170)
+	skipBtn.Font = Enum.Font.Gotham
+	skipBtn.TextSize = 13
+	skipBtn.BorderSizePixel = 0
+	skipBtn.Parent = bg
+	local sbc = Instance.new("UICorner"); sbc.CornerRadius = UDim.new(0, 4); sbc.Parent = skipBtn
+	skipBtn.MouseButton1Click:Connect(function()
+		if settingsScreen then settingsScreen:Destroy(); settingsScreen = nil end
 	end)
 
 	-- ========================================================================
@@ -346,11 +371,23 @@ updR.OnClientEvent:Connect(function(settings, ok, msg)
 	end
 end)
 
--- Au démarrage : si pas de settings encore, build l'UI après un délai
-task.wait(2)
-if not currentSettings or not currentSettings.HasCompletedSetup then
-	buildUI()
-end
+-- NE PAS afficher au démarrage : le jeu doit se lancer directement en mode
+-- enfant par défaut. L'écran est accessible via la touche F1.
+-- Cf. KeybindsHud : F1 = paramètres (au lieu de TAB qui ouvre la liste touches)
+
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputBegan:Connect(function(input, gp)
+	if gp then return end
+	if input.KeyCode == Enum.KeyCode.F1 then
+		if settingsScreen then
+			-- Toggle : si déjà ouvert, on ferme
+			settingsScreen:Destroy()
+			settingsScreen = nil
+		else
+			buildUI()
+		end
+	end
+end)
 
 -- Expose le mode adulte au client (pour Story côté client si besoin)
 _G.IsAdultMode = function()
