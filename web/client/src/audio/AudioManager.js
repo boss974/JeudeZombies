@@ -4,6 +4,23 @@ const NOTE = {
   c4: 261.63, d4: 293.66, e4: 329.63, f4: 349.23, g4: 392.00, a4: 440.00
 };
 
+const SAMPLE_BASE = "assets/audio/kenney/";
+const SAMPLES = {
+  click: ["ui_click.ogg"],
+  select: ["ui_select.ogg"],
+  error: ["ui_error.ogg"],
+  pistol: ["shot_pistol_1.ogg", "shot_pistol_2.ogg"],
+  shotgun: ["shot_heavy_1.ogg", "shot_heavy_2.ogg"],
+  volcano: ["shot_volcano_1.ogg", "shot_volcano_2.ogg"],
+  hit: ["hit_1.ogg", "hit_2.ogg"],
+  kill: ["kill_1.ogg"],
+  boss: ["boss_1.ogg"],
+  combo: ["combo_1.ogg", "combo_2.ogg"],
+  weapon: ["weapon_change.ogg"],
+  turret: ["defense_turret.ogg"],
+  barricade: ["defense_barricade.ogg"]
+};
+
 export class AudioManager {
   constructor() {
     this.ctx = null;
@@ -13,6 +30,9 @@ export class AudioManager {
     this.bed = null;
     this.delay = null;
     this.bedNodes = [];
+    this.sampleBuffers = new Map();
+    this.sampleLoading = null;
+    this.musicElement = null;
     this.enabled = localStorage.getItem("zombies.audioEnabled") !== "0";
     this.started = false;
     this.mode = "menu";
@@ -26,6 +46,8 @@ export class AudioManager {
     if (!this.enabled) return;
     this._ensure();
     if (this.ctx.state === "suspended") await this.ctx.resume();
+    this._startMusicElement();
+    this._loadSamples();
     if (this.started) return;
     this.started = true;
     this._timer = setInterval(() => this._tick(), 80);
@@ -36,6 +58,7 @@ export class AudioManager {
     localStorage.setItem("zombies.audioEnabled", this.enabled ? "1" : "0");
     if (!this.master) return;
     this.master.gain.setTargetAtTime(this.enabled ? 0.85 : 0.0001, this.ctx.currentTime, 0.03);
+    if (this.musicElement) this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
     if (this.enabled) this.start();
   }
 
@@ -45,6 +68,10 @@ export class AudioManager {
       const target = mode === "boss" ? 0.38 : mode === "combat" ? 0.34 : mode === "ambient" ? 0.28 : 0.22;
       this.music.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
       this._updateBed();
+      if (this.musicElement) {
+        this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
+        this.musicElement.playbackRate = mode === "boss" ? 0.86 : mode === "combat" ? 1.04 : mode === "menu" ? 0.94 : 1;
+      }
     }
   }
 
@@ -55,17 +82,19 @@ export class AudioManager {
     return this.weapon;
   }
 
-  click() { this._blip(520, 0.045, 0.05, "triangle"); }
+  click() { if (!this._playSample("click", 0.45)) this._blip(520, 0.045, 0.05, "triangle"); }
   startGame() { this._rise([NOTE.c3, NOTE.g3, NOTE.c4], 0.09); }
   waveStart() { this._rise([NOTE.d2, NOTE.a2, NOTE.d3, NOTE.a3], 0.08); }
   bossWarning(kind = "boss") {
     this._ensure();
     const t = this.ctx.currentTime;
     if (kind === "miniBoss") {
+      if (this._playSample("boss", 0.55, 1.18)) return;
       this._fall([NOTE.a2, NOTE.f2, NOTE.d2], 0.12);
       this._noise(t + 0.05, 0.16, 0.08, 520, "bandpass");
       return;
     }
+    this._playSample("boss", 0.85, 0.78);
     this._fall([NOTE.c3, NOTE.g2, NOTE.d2, NOTE.c2], 0.14);
     this._tone(44, t, 0.75, 0.16, "sawtooth", 0.04, 31);
     this._noise(t + 0.04, 0.45, 0.13, 260, "lowpass");
@@ -75,6 +104,7 @@ export class AudioManager {
   victory() { this._rise([NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4, NOTE.e4], 0.12); }
   combo(value) {
     if (value <= 1) return;
+    if (this._playSample("combo", 0.42 + value * 0.08, 0.88 + value * 0.05)) return;
     const notes = [NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4, NOTE.e4];
     this._rise(notes.slice(0, Math.min(value, notes.length)), 0.035);
   }
@@ -83,6 +113,7 @@ export class AudioManager {
     this._ensure();
     const t = this.ctx.currentTime;
     const variance = 0.92 + Math.random() * 0.16;
+    if (this._playSample(this.weapon, this.weapon === "shotgun" ? 0.9 : 0.72, variance)) return;
     if (this.weapon === "shotgun") {
       this._noise(t, 0.03, 0.26, 1900 + Math.random() * 700, "highpass");
       this._noise(t + 0.006, 0.12, 0.2, 520, "bandpass");
@@ -112,6 +143,7 @@ export class AudioManager {
 
   hit() {
     this._ensure();
+    if (this._playSample("hit", 0.6, 0.95 + Math.random() * 0.1)) return;
     const t = this.ctx.currentTime;
     this._noise(t, 0.06, 0.08, 650, "bandpass");
     this._tone(82, t, 0.08, 0.08, "sawtooth", 0.004);
@@ -119,6 +151,7 @@ export class AudioManager {
 
   zombieDown(type = "normal") {
     this._ensure();
+    if (this._playSample("kill", type === "boss" ? 0.85 : 0.55, type === "fast" ? 1.2 : 1)) return;
     const t = this.ctx.currentTime;
     const base = type === "boss" ? 58 : type === "miniBoss" ? 72 : 95;
     this._tone(base, t, 0.1, 0.07, "sawtooth", 0.003, base * 0.55);
@@ -132,27 +165,30 @@ export class AudioManager {
   }
 
   noCoins() {
-    this._fall([NOTE.g3, NOTE.d3], 0.055);
+    if (!this._playSample("error", 0.55)) this._fall([NOTE.g3, NOTE.d3], 0.055);
   }
 
   placeDefense(type = "turret") {
     if (type === "barricade") {
+      if (this._playSample("barricade", 0.65)) return;
       this._ensure();
       const t = this.ctx.currentTime;
       this._tone(92, t, 0.08, 0.12, "triangle", 0.003, 55);
       this._noise(t + 0.01, 0.08, 0.08, 380, "lowpass");
       return;
     }
-    this._rise([NOTE.g2, NOTE.d3, NOTE.g3], 0.045);
+    if (!this._playSample("turret", 0.6)) this._rise([NOTE.g2, NOTE.d3, NOTE.g3], 0.045);
   }
 
   selectDefense(type = "turret") {
+    if (this._playSample("select", 0.48, type === "barricade" ? 0.82 : 1.08)) return;
     if (type === "barricade") this._fall([NOTE.e3, NOTE.c3], 0.045);
     else this._rise([NOTE.c3, NOTE.g3], 0.04);
   }
 
   weaponChange(weapon = this.weapon) {
     this._ensure();
+    if (this._playSample("weapon", 0.62, weapon === "volcano" ? 0.72 : weapon === "shotgun" ? 0.88 : 1.1)) return;
     const t = this.ctx.currentTime;
     if (weapon === "shotgun") {
       this._noise(t, 0.05, 0.08, 900, "bandpass");
@@ -200,6 +236,65 @@ export class AudioManager {
     this.nextBeat = this.ctx.currentTime + 0.08;
   }
 
+  _startMusicElement() {
+    if (this.musicElement) {
+      this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
+      this.musicElement.play().catch(() => {});
+      return;
+    }
+    this.musicElement = new Audio(`${SAMPLE_BASE}music_digital_preview.ogg`);
+    this.musicElement.loop = true;
+    this.musicElement.preload = "auto";
+    this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
+    this.musicElement.playbackRate = this.mode === "boss" ? 0.86 : this.mode === "combat" ? 1.04 : 1;
+    this.musicElement.play().catch(() => {});
+  }
+
+  _musicVolumeForMode() {
+    if (this.mode === "boss") return 0.34;
+    if (this.mode === "combat") return 0.28;
+    if (this.mode === "ambient") return 0.22;
+    return 0.16;
+  }
+
+  async _loadSamples() {
+    if (this.sampleLoading) return this.sampleLoading;
+    this.sampleLoading = (async () => {
+      const files = [...new Set(Object.values(SAMPLES).flat())];
+      await Promise.all(files.map(async (file) => {
+        try {
+          const res = await fetch(`${SAMPLE_BASE}${file}`);
+          if (!res.ok) return;
+          const arr = await res.arrayBuffer();
+          const buffer = await this.ctx.decodeAudioData(arr);
+          this.sampleBuffers.set(file, buffer);
+        } catch (_) {}
+      }));
+    })();
+    return this.sampleLoading;
+  }
+
+  _playSample(group, gainValue = 0.7, rate = 1) {
+    if (!this.enabled || !this.ctx) return false;
+    const list = SAMPLES[group];
+    if (!list || !list.length) return false;
+    const ready = list.filter((file) => this.sampleBuffers.has(file));
+    if (!ready.length) {
+      this._loadSamples();
+      return false;
+    }
+    const file = ready[Math.floor(Math.random() * ready.length)];
+    const src = this.ctx.createBufferSource();
+    const gain = this.ctx.createGain();
+    src.buffer = this.sampleBuffers.get(file);
+    src.playbackRate.value = Math.max(0.45, Math.min(1.7, rate));
+    gain.gain.value = gainValue;
+    src.connect(gain);
+    gain.connect(this.sfx);
+    src.start();
+    return true;
+  }
+
   _startBed() {
     const make = (freq, type, gainValue) => {
       const osc = this.ctx.createOscillator();
@@ -212,15 +307,15 @@ export class AudioManager {
       osc.start();
       this.bedNodes.push({ osc, gain, base: freq });
     };
-    make(49, "sine", 0.35);
-    make(98, "triangle", 0.12);
-    make(196, "sine", 0.035);
+    make(49, "sine", 0.14);
+    make(98, "triangle", 0.045);
+    make(196, "sine", 0.015);
     this._updateBed();
   }
 
   _updateBed() {
     if (!this.bed || !this.ctx) return;
-    const gain = this.mode === "boss" ? 0.22 : this.mode === "combat" ? 0.16 : this.mode === "ambient" ? 0.12 : 0.08;
+    const gain = this.mode === "boss" ? 0.08 : this.mode === "combat" ? 0.045 : this.mode === "ambient" ? 0.025 : 0.018;
     this.bed.gain.setTargetAtTime(gain, this.ctx.currentTime, 0.25);
     const root = this.mode === "boss" ? 41.2 : this.mode === "combat" ? 55 : this.mode === "menu" ? 65.4 : 49;
     this.bedNodes.forEach((node, index) => {
@@ -230,6 +325,7 @@ export class AudioManager {
 
   _tick() {
     if (!this.enabled || !this.ctx || this.ctx.state !== "running") return;
+    if (this.musicElement) return;
     const now = this.ctx.currentTime;
     while (this.nextBeat < now + 0.28) {
       this._musicBeat(this.nextBeat, this.beat++);
