@@ -3,6 +3,21 @@
 
 local Config = {}
 
+-- ============================================================================
+-- MODE ADULTE (+18) — défaut OFF. Voir ADULT_MODE.md.
+-- Bascule les dialogues vers Story.AdultLines (créole familier vulgaire).
+-- Ne pas activer pour publication Roblox publique sans âge-gating officiel.
+-- ============================================================================
+Config.AdultMode = false
+
+-- ============================================================================
+-- MULTIJOUEUR — Roblox = multi par défaut. Limite serveur :
+-- ============================================================================
+Config.Multiplayer = {
+	MaxPlayers = 6,         -- coop jusqu'à 6
+	PvpEnabled = false,     -- pas de PvP (coop pur)
+}
+
 Config.Brand = {
 	Colors = {
 		BleuLagon = Color3.fromRGB(0, 153, 184),

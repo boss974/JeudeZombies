@@ -322,9 +322,53 @@ Story.CityHooks = {
 }
 
 -- ============================================================================
--- API : pick une ligne, en priorité depuis CityHooks[city][category], sinon Lines[category]
+-- MODE ADULTE (+18) — lignes plus crues, activées via Config.AdultMode
+-- Cf. ADULT_MODE.md. Reste sous limite "sans gore, sans contenu haineux".
 -- ============================================================================
+Story.AdultLines = {
+	playerHit = {
+		"Putain la moukate !",
+		"Merde, ça pique !",
+		"Allé tcho dehors sale bête !",
+		"Ah la vache, recule !",
+		"Mi sava te détruire !",
+		"A ou pez moukate, dégage !",
+		"Eh con, lâche-moi !",
+	},
+	playerShoot = {
+		"Crève !",
+		"Allé tcho dehors !",
+		"Mi sava te défoncer !",
+		"Sale moukatère !",
+		"Bouge ton cul d'ici !",
+		"Tcho dehors marmaille !",
+		"Bondieu de Bondieu !",
+	},
+	bossWarning = {
+		"Putain c'est quoi ça ?!",
+		"Bondieu, ce monstre...",
+		"Eh, ce truc va me défoncer.",
+	},
+	lowHp = {
+		"Merde, je vais y rester...",
+		"Aïe ta race, soigne-moi !",
+		"Bondieu, pitié...",
+	},
+}
+
+-- ============================================================================
+-- API : pick une ligne, en priorité depuis CityHooks[city][category], sinon Lines[category]
+-- Si Config.AdultMode, on tire d'abord dans AdultLines (si dispo).
+-- ============================================================================
+local _AdultModeReader = nil  -- set externement par injection (Config.AdultMode)
+function Story.SetAdultModeReader(fn) _AdultModeReader = fn end
+
 function Story.PickLine(category, city)
+	-- Mode adulte : si dispo, tire dans AdultLines
+	if _AdultModeReader and _AdultModeReader() and Story.AdultLines[category] then
+		local list = Story.AdultLines[category]
+		if #list > 0 then return list[math.random(1, #list)] end
+	end
 	if city and Story.CityHooks[city] and Story.CityHooks[city][category] then
 		local list = Story.CityHooks[city][category]
 		if #list > 0 then return list[math.random(1, #list)] end

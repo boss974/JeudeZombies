@@ -6,9 +6,13 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
+local Config    = require(Shared:WaitForChild("Config"))
 local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes   = require(Shared:WaitForChild("Remotes"))
 local Story     = require(Shared:WaitForChild("Story"))
+
+-- Branche le mode adulte sur Story.PickLine (Config.AdultMode → lignes crues)
+Story.SetAdultModeReader(function() return Config.AdultMode end)
 
 local StoryService = {}
 StoryService.CurrentMissionIndex = 1
