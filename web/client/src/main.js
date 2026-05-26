@@ -39,7 +39,8 @@ const hud = {
   coins: document.getElementById("hud-coins"),
   best: document.getElementById("hud-best"),
   hpFill: document.getElementById("hud-hp-fill"),
-  phase: document.getElementById("hud-phase")
+  phase: document.getElementById("hud-phase"),
+  combo: document.getElementById("hud-combo")
 };
 
 function loadMissionIndex() {
@@ -86,6 +87,7 @@ scene.onPlayerShoot = () => showDialog(randomLine("playerShoot"), "default");
 scene.onPlayerFire = () => audio.shoot();
 scene.onBulletHit = () => audio.hit();
 scene.onZombieKilled = (type) => audio.zombieDown(type);
+scene.onCombo = (combo) => audio.combo(combo);
 scene.onPlayerHit = () => showDialog(randomLine("playerHit"), "danger");
 scene.onPlayerDamaged = () => audio.playerHurt();
 scene.onLowHp = () => showDialog(randomLine("lowHp"), "danger");

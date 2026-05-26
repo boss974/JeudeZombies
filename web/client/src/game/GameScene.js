@@ -32,6 +32,8 @@ export class GameScene {
     this._shake = 0;                // intensité du tremblement (pixels)
     this._damageFlash = 0;          // 0..1, fade out après hit
     this._lastPlayerHp = null;
+    this.combo = 1;
+    this.comboTimer = 0;
 
     this.bestScore = parseInt(localStorage.getItem(STORAGE_KEYS.BEST_SCORE) || "0", 10);
 
@@ -50,6 +52,8 @@ export class GameScene {
     this.score = 0;
     this.coins = 24;
     this.worldTime = 0;
+    this.combo = 1;
+    this.comboTimer = 0;
     this._lastStatus = "intermission";
     this.state = STATE.PLAYING;
   }
@@ -115,8 +119,7 @@ export class GameScene {
           this.onBulletHit?.();
           this._spawnHitParticles(b.x, b.y, z.color);
           if (!z.alive) {
-            this.score += z.score;
-            this.coins += z.coins;
+            this._registerKill(z);
             this.onZombieKilled?.(z.type);
             this._spawnHitParticles(z.x, z.y, z.color, 14);
           }
@@ -166,6 +169,12 @@ export class GameScene {
       this.onWaveCleared?.(this.waveManager.wave);
     }
     this._lastStatus = this.waveManager.status;
+
+    this.comboTimer = Math.max(0, this.comboTimer - dt);
+    if (this.comboTimer <= 0 && this.combo !== 1) {
+      this.combo = 1;
+      this.onCombo?.(this.combo);
+    }
 
     // Particules
     for (const p of this.particles) {
@@ -220,6 +229,15 @@ export class GameScene {
     this.hud.best.textContent  = this.bestScore;
     this.hud.hpFill.style.width = `${(this.player.hp / CONFIG.player.maxHp) * 100}%`;
     if (this.hud.phase) this.hud.phase.textContent = this._isNight() ? "Nuit" : "Jour";
+    if (this.hud.combo) this.hud.combo.textContent = `x${this.combo}`;
+  }
+
+  _registerKill(zombie) {
+    this.combo = Math.min(5, this.combo + 1);
+    this.comboTimer = 3.5;
+    this.score += Math.round(zombie.score * this.combo);
+    this.coins += zombie.coins + (this.combo >= 3 ? 1 : 0) + (this.combo >= 5 ? 1 : 0);
+    this.onCombo?.(this.combo);
   }
 
   setSelectedDefense(type) {

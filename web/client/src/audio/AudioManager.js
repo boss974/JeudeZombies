@@ -10,6 +10,9 @@ export class AudioManager {
     this.master = null;
     this.music = null;
     this.sfx = null;
+    this.bed = null;
+    this.delay = null;
+    this.bedNodes = [];
     this.enabled = localStorage.getItem("zombies.audioEnabled") !== "0";
     this.started = false;
     this.mode = "menu";
@@ -39,8 +42,9 @@ export class AudioManager {
   setMode(mode) {
     this.mode = mode;
     if (this.music && this.ctx) {
-      const target = mode === "boss" ? 0.32 : mode === "combat" ? 0.27 : mode === "ambient" ? 0.2 : 0.16;
+      const target = mode === "boss" ? 0.38 : mode === "combat" ? 0.34 : mode === "ambient" ? 0.28 : 0.22;
       this.music.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
+      this._updateBed();
     }
   }
 
@@ -69,6 +73,11 @@ export class AudioManager {
   waveClear() { this._rise([NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4], 0.11); }
   gameOver() { this._fall([NOTE.c3, NOTE.g2, NOTE.e2, NOTE.c2], 0.16); }
   victory() { this._rise([NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4, NOTE.e4], 0.12); }
+  combo(value) {
+    if (value <= 1) return;
+    const notes = [NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4, NOTE.e4];
+    this._rise(notes.slice(0, Math.min(value, notes.length)), 0.035);
+  }
 
   shoot() {
     this._ensure();
@@ -161,15 +170,62 @@ export class AudioManager {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     this.ctx = new AudioContext();
     this.master = this.ctx.createGain();
-    this.master.gain.value = this.enabled ? 0.85 : 0.0001;
+    this.master.gain.value = this.enabled ? 0.95 : 0.0001;
     this.music = this.ctx.createGain();
-    this.music.gain.value = 0.22;
+    this.music.gain.value = 0.3;
     this.sfx = this.ctx.createGain();
-    this.sfx.gain.value = 0.55;
-    this.music.connect(this.master);
-    this.sfx.connect(this.master);
+    this.sfx.gain.value = 0.72;
+    this.bed = this.ctx.createGain();
+    this.bed.gain.value = 0.12;
+    this.delay = this.ctx.createDelay(0.35);
+    this.delay.delayTime.value = 0.12;
+    const delayGain = this.ctx.createGain();
+    delayGain.gain.value = 0.18;
+    const compressor = this.ctx.createDynamicsCompressor();
+    compressor.threshold.value = -18;
+    compressor.knee.value = 18;
+    compressor.ratio.value = 5;
+    compressor.attack.value = 0.004;
+    compressor.release.value = 0.18;
+
+    this.music.connect(this.delay);
+    this.delay.connect(delayGain);
+    delayGain.connect(this.music);
+    this.music.connect(compressor);
+    this.bed.connect(compressor);
+    this.sfx.connect(compressor);
+    compressor.connect(this.master);
     this.master.connect(this.ctx.destination);
+    this._startBed();
     this.nextBeat = this.ctx.currentTime + 0.08;
+  }
+
+  _startBed() {
+    const make = (freq, type, gainValue) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = type;
+      osc.frequency.value = freq;
+      gain.gain.value = gainValue;
+      osc.connect(gain);
+      gain.connect(this.bed);
+      osc.start();
+      this.bedNodes.push({ osc, gain, base: freq });
+    };
+    make(49, "sine", 0.35);
+    make(98, "triangle", 0.12);
+    make(196, "sine", 0.035);
+    this._updateBed();
+  }
+
+  _updateBed() {
+    if (!this.bed || !this.ctx) return;
+    const gain = this.mode === "boss" ? 0.22 : this.mode === "combat" ? 0.16 : this.mode === "ambient" ? 0.12 : 0.08;
+    this.bed.gain.setTargetAtTime(gain, this.ctx.currentTime, 0.25);
+    const root = this.mode === "boss" ? 41.2 : this.mode === "combat" ? 55 : this.mode === "menu" ? 65.4 : 49;
+    this.bedNodes.forEach((node, index) => {
+      node.osc.frequency.setTargetAtTime(root * (index + 1), this.ctx.currentTime, 0.4);
+    });
   }
 
   _tick() {

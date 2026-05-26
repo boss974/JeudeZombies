@@ -281,6 +281,12 @@ html, body {
   text-shadow: var(--glow-or);
 }
 
+.hud-combo span:last-child {
+  color: var(--c-hibiscus);
+  font-weight: 800;
+  text-shadow: 0 0 12px rgba(233, 30, 99, 0.65);
+}
+
 .defense-tools {
   display: grid;
   grid-template-columns: 1fr 1fr;
