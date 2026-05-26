@@ -728,3 +728,306 @@ button:focus-visible {
   from { background-position: 0 0; }
   to   { background-position: -400px 400px; }
 }
+
+/* ============================================================================
+ * HUD — Lignes pseudo / difficulté / buffs (ajouts gameplay addictif)
+ * ============================================================================ */
+.hud-player span:last-child {
+  color: var(--c-lampions);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-shadow: 0 0 6px rgba(255, 230, 160, 0.35);
+}
+
+.hud-difficulty span:last-child {
+  color: var(--c-pluie);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-buffs span:last-child {
+  color: var(--c-cannelle);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-align: right;
+}
+
+.hud-buffs span:last-child.active {
+  color: var(--c-fournaise);
+  text-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
+  animation: buff-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes buff-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.75; }
+}
+
+/* ============================================================================
+ * Écran "Choisis ton upgrade" — overlay entre vagues
+ * ============================================================================ */
+#upgrade-choice {
+  position: absolute;
+  inset: 0;
+  z-index: 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 107, 53, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse at 50% 110%, rgba(28, 139, 62, 0.28) 0%, transparent 55%),
+    linear-gradient(180deg,
+      rgba(15, 8, 5, 0.94) 0%,
+      rgba(30, 15, 10, 0.94) 50%,
+      rgba(15, 8, 5, 0.94) 100%);
+  animation: dialog-fade 0.4s ease-out;
+}
+
+#upgrade-choice h2 {
+  font-size: clamp(28px, 4vw, 44px);
+  color: var(--c-cannelle);
+  text-shadow:
+    0 0 12px rgba(244, 185, 66, 0.55),
+    0 0 32px rgba(255, 107, 53, 0.35),
+    0 3px 0 rgba(0, 0, 0, 0.6);
+  margin-bottom: 12px;
+  letter-spacing: 1.5px;
+  font-weight: 800;
+}
+
+.upgrade-hint {
+  color: var(--c-lampions);
+  font-size: clamp(13px, 1.2vw, 16px);
+  margin-bottom: 28px;
+  text-align: center;
+  max-width: 580px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.upgrade-hint strong { color: var(--c-fournaise); }
+
+.upgrade-cards {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 900px;
+  margin-bottom: 24px;
+}
+
+.upgrade-card {
+  width: 230px;
+  min-height: 240px;
+  padding: 22px 18px;
+  background:
+    linear-gradient(180deg,
+      rgba(45, 25, 15, 0.94) 0%,
+      rgba(20, 10, 8, 0.94) 100%);
+  border: 2px solid var(--c-or-fonce);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease-out, box-shadow 0.18s, border-color 0.18s;
+  box-shadow:
+    var(--ombre-bois),
+    inset 0 0 0 1px rgba(255, 230, 160, 0.18),
+    inset 0 0 24px rgba(255, 107, 53, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+.upgrade-card::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 50% 0%, var(--card-color, var(--c-fournaise)) 0%, transparent 65%);
+  opacity: 0.18;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.upgrade-card > * { position: relative; z-index: 1; }
+
+.upgrade-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  border-color: var(--c-fournaise);
+  box-shadow:
+    0 14px 36px rgba(255, 107, 53, 0.35),
+    var(--ombre-bois),
+    inset 0 0 0 1px rgba(255, 230, 160, 0.32),
+    inset 0 0 30px rgba(255, 107, 53, 0.15);
+}
+
+.upgrade-card:active {
+  transform: translateY(-2px) scale(0.99);
+}
+
+.upgrade-icon {
+  font-size: 52px;
+  line-height: 1;
+  margin-bottom: 14px;
+  color: var(--card-color, var(--c-fournaise));
+  text-shadow:
+    0 0 14px var(--card-color, var(--c-fournaise)),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  filter: drop-shadow(0 0 6px rgba(255, 230, 160, 0.25));
+}
+
+.upgrade-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--c-lampions);
+  margin-bottom: 8px;
+  letter-spacing: 0.6px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.upgrade-desc {
+  font-size: 13px;
+  color: #f3ead6;
+  line-height: 1.45;
+  margin-bottom: 14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+}
+
+.upgrade-stacks {
+  margin-top: auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--c-cannelle);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border: 1px solid rgba(244, 185, 66, 0.4);
+  border-radius: 6px;
+  background: rgba(20, 10, 5, 0.55);
+}
+
+.upgrade-card.maxed {
+  cursor: not-allowed;
+  opacity: 0.5;
+  filter: grayscale(0.7);
+}
+.upgrade-card.maxed:hover { transform: none; }
+
+/* Bouton secondaire (Passer cette fois, etc.) */
+.btn-secondary {
+  background: linear-gradient(180deg,
+    #5a3a1a 0%,
+    #3a2010 50%,
+    #1a0d08 100%) !important;
+  color: var(--c-lampions) !important;
+  border: 2px solid var(--c-or-fonce) !important;
+  font-size: 14px !important;
+  padding: 10px 28px !important;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 230, 160, 0.25),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3) !important;
+}
+.btn-secondary:hover {
+  filter: brightness(1.15) !important;
+  border-color: var(--c-cannelle) !important;
+}
+
+/* ============================================================================
+ * Sliders audio (menu) — volume musique et SFX séparés
+ * ============================================================================ */
+.audio-settings {
+  position: relative;
+  z-index: 3;
+  margin-top: 18px;
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 12px 18px;
+  border: 1px solid rgba(255, 230, 160, 0.22);
+  border-radius: 10px;
+  background: rgba(20, 10, 5, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.audio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--c-lampions);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.audio-row input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 130px;
+  height: 6px;
+  background: linear-gradient(90deg,
+    var(--c-fournaise) 0%,
+    var(--c-cannelle) 100%);
+  border-radius: 4px;
+  outline: none;
+  cursor: pointer;
+  border: 1px solid var(--c-or-fonce);
+}
+
+.audio-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-lampions);
+  border: 2px solid var(--c-flamboyant);
+  cursor: grab;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 230, 160, 0.4);
+  transition: transform 0.12s;
+}
+.audio-row input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+.audio-row input[type="range"]::-webkit-slider-thumb:active { cursor: grabbing; }
+
+.audio-row input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-lampions);
+  border: 2px solid var(--c-flamboyant);
+  cursor: grab;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 0 8px rgba(255, 230, 160, 0.4);
+}
+
+/* ============================================================================
+ * Pickup pop-up dialog (toast quand le joueur ramasse un pickup)
+ * ============================================================================ */
+#dialog.pickup-toast {
+  bottom: 16%;
+  padding: 10px 22px;
+  border-color: var(--c-cannelle);
+  box-shadow:
+    var(--ombre-bois),
+    0 0 22px rgba(244, 185, 66, 0.45),
+    inset 0 0 0 1px rgba(255, 230, 160, 0.3);
+}
+#dialog.pickup-toast p {
+  font-size: 16px;
+  color: var(--c-lampions);
+}
+
+/* Responsive : cartes en colonne en dessous de 760px */
+@media (max-width: 760px) {
+  .upgrade-cards { gap: 14px; }
+  .upgrade-card { width: 100%; max-width: 320px; min-height: 200px; padding: 18px 16px; }
+  .audio-settings { gap: 14px; padding: 10px 14px; }
+  .audio-row input[type="range"] { width: 110px; }
+}

@@ -34,6 +34,10 @@ export class AudioManager {
     this.sampleLoading = null;
     this.musicElement = null;
     this.enabled = localStorage.getItem("zombies.audioEnabled") !== "0";
+    const musicVol = parseInt(localStorage.getItem("zombies.audioMusic") || "70", 10);
+    const sfxVol = parseInt(localStorage.getItem("zombies.audioSfx") || "85", 10);
+    this.musicVolume = Math.max(0, Math.min(1, (Number.isFinite(musicVol) ? musicVol : 70) / 100));
+    this.sfxVolume = Math.max(0, Math.min(1, (Number.isFinite(sfxVol) ? sfxVol : 85) / 100));
     this.started = false;
     this.mode = "menu";
     this.weapon = "pistol";
@@ -62,11 +66,30 @@ export class AudioManager {
     if (this.enabled) this.start();
   }
 
+  setMusicVolume(v) {
+    this.musicVolume = Math.max(0, Math.min(1, Number(v) || 0));
+    if (this.music && this.ctx) {
+      const base = this.mode === "boss" ? 0.38 : this.mode === "combat" ? 0.34 : this.mode === "ambient" ? 0.28 : 0.22;
+      this.music.gain.setTargetAtTime(base * this.musicVolume, this.ctx.currentTime, 0.05);
+    }
+    if (this.musicElement) this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
+  }
+
+  setSfxVolume(v) {
+    this.sfxVolume = Math.max(0, Math.min(1, Number(v) || 0));
+    if (this.sfx && this.ctx) {
+      this.sfx.gain.setTargetAtTime(0.72 * this.sfxVolume, this.ctx.currentTime, 0.05);
+    }
+  }
+
+  getMusicVolume() { return this.musicVolume; }
+  getSfxVolume() { return this.sfxVolume; }
+
   setMode(mode) {
     this.mode = mode;
     if (this.music && this.ctx) {
       const target = mode === "boss" ? 0.38 : mode === "combat" ? 0.34 : mode === "ambient" ? 0.28 : 0.22;
-      this.music.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
+      this.music.gain.setTargetAtTime(target * this.musicVolume, this.ctx.currentTime, 0.08);
       this._updateBed();
       if (this.musicElement) {
         this.musicElement.volume = this.enabled ? this._musicVolumeForMode() : 0;
@@ -208,9 +231,9 @@ export class AudioManager {
     this.master = this.ctx.createGain();
     this.master.gain.value = this.enabled ? 0.95 : 0.0001;
     this.music = this.ctx.createGain();
-    this.music.gain.value = 0.3;
+    this.music.gain.value = 0.22 * this.musicVolume;
     this.sfx = this.ctx.createGain();
-    this.sfx.gain.value = 0.72;
+    this.sfx.gain.value = 0.72 * this.sfxVolume;
     this.bed = this.ctx.createGain();
     this.bed.gain.value = 0.12;
     this.delay = this.ctx.createDelay(0.35);
@@ -251,10 +274,12 @@ export class AudioManager {
   }
 
   _musicVolumeForMode() {
-    if (this.mode === "boss") return 0.34;
-    if (this.mode === "combat") return 0.28;
-    if (this.mode === "ambient") return 0.22;
-    return 0.16;
+    let base;
+    if (this.mode === "boss") base = 0.34;
+    else if (this.mode === "combat") base = 0.28;
+    else if (this.mode === "ambient") base = 0.22;
+    else base = 0.16;
+    return base * this.musicVolume;
   }
 
   async _loadSamples() {

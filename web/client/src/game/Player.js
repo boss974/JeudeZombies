@@ -9,10 +9,15 @@ export class Player {
     this.y = y;
     this.r = CONFIG.player.radius;
     this.hp = CONFIG.player.maxHp;
+    this.maxHp = CONFIG.player.maxHp;
     this.aim = 0;            // angle en radians
     this.cooldown = 0;
     this.invuln = 0;
     this.alive = true;
+    // Multiplicateurs de stats appliqués par GameScene (upgrades permanents +
+    // buffs temporaires des pickups). Défaut 1 = pas d'effet.
+    this.speedMul = 1;
+    this.fireRateMul = 1;
     // État d'animation
     this._walkPhase = 0;     // 0..1, avance quand on bouge
     this._moving = false;
@@ -22,8 +27,9 @@ export class Player {
     if (!this.alive) return;
 
     const ax = input.axis();
-    const dx = ax.x * CONFIG.player.speed * dt;
-    const dy = ax.y * CONFIG.player.speed * dt;
+    const speed = CONFIG.player.speed * (this.speedMul || 1);
+    const dx = ax.x * speed * dt;
+    const dy = ax.y * speed * dt;
     this.x += dx;
     this.y += dy;
 
@@ -50,7 +56,7 @@ export class Player {
   canFire() { return this.alive && this.cooldown <= 0; }
 
   fire() {
-    this.cooldown = CONFIG.player.fireRate;
+    this.cooldown = CONFIG.player.fireRate * (this.fireRateMul || 1);
     return {
       x: this.x + Math.cos(this.aim) * (this.r + 10),
       y: this.y + Math.sin(this.aim) * (this.r + 10),

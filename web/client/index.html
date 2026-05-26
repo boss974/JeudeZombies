@@ -254,12 +254,24 @@
          HUD â€” panneau crÃ©ole, avec icÃ´nes
          =========================================================== -->
     <div id="hud" class="hidden">
+      <div class="hud-row hud-player">
+        <span class="hud-label">👤 Joueur</span>
+        <span id="hud-pseudo">—</span>
+      </div>
       <div class="hud-row hud-mission">
         <span class="hud-label">
           <svg class="hud-icon" aria-hidden="true"><use href="#ico-flag"/></svg>
           Mission
         </span>
         <span id="hud-mission">Saint-Denis</span>
+      </div>
+      <div class="hud-row hud-difficulty">
+        <span class="hud-label">⚙ Difficulté</span>
+        <span id="hud-difficulty">x1.00</span>
+      </div>
+      <div class="hud-row hud-buffs">
+        <span class="hud-label">⚡ Buffs</span>
+        <span id="hud-buffs">—</span>
       </div>
       <div class="hud-row">
         <span class="hud-label">
@@ -390,7 +402,23 @@
         <h2>Top 10 local</h2>
         <ol id="top-scores"></ol>
       </div>
-      <p class="reset-link"><a href="#" id="btn-reset-story">RÃ©initialiser l'histoire</a></p>
+      <p class="reset-link">
+        <a href="#" id="btn-reset-story">Réinitialiser l'histoire</a>
+        · <a href="#" id="btn-clear-scores">Effacer Top 10</a>
+        · <a href="#" id="btn-reset-upgrades">Effacer upgrades</a>
+      </p>
+
+      <!-- Sliders audio (volume musique et SFX séparés, + mute persistant) -->
+      <div class="audio-settings">
+        <label class="audio-row">
+          <span>🎵 Musique</span>
+          <input type="range" id="vol-music" min="0" max="100" value="60" />
+        </label>
+        <label class="audio-row">
+          <span>🔊 SFX</span>
+          <input type="range" id="vol-sfx" min="0" max="100" value="80" />
+        </label>
+      </div>
 
       <!-- Bande de vagues animÃ©es en bas -->
       <div class="decor-waves" aria-hidden="true">
@@ -453,6 +481,19 @@
         </svg>
       </div>
     </div>
+
+    <!-- ===========================================================
+         CHOIX D'UPGRADE entre vagues
+         =========================================================== -->
+    <div id="upgrade-choice" class="hidden">
+      <h2>🎁 Choisis ton bonus</h2>
+      <p class="upgrade-hint">Tu peux prendre <strong>1 amélioration</strong> permanente. Elle restera entre les missions.</p>
+      <div id="upgrade-cards" class="upgrade-cards">
+        <!-- 3 cartes injectées par main.js -->
+      </div>
+      <button id="btn-skip-upgrade" class="btn-secondary">Passer cette fois</button>
+    </div>
+
   </div>
 
   <script type="module" src="src/main.js"></script>

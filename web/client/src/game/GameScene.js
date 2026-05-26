@@ -1,11 +1,13 @@
 import { CONFIG } from "../../../shared/config.js";
-import { DEFENSE_TYPE, STATE, STORAGE_KEYS } from "../../../shared/constants.js";
+import { DEFENSE_TYPE, PICKUP_TYPE, STATE, STORAGE_KEYS } from "../../../shared/constants.js";
 import { CityScene } from "./CityScene.js";
 import { Defense } from "./Defense.js";
 import { Input } from "./input.js";
 import { Minimap } from "./Minimap.js";
+import { Pickup } from "./Pickup.js";
 import { Player } from "./Player.js";
 import { WaveManager } from "./WaveManager.js";
+import { computeBonuses, loadUpgrades } from "./Upgrades.js";
 
 // Scène principale : boucle update/draw + collisions + score.
 export class GameScene {
@@ -22,6 +24,10 @@ export class GameScene {
     this.bullets = [];
     this.zombies = [];
     this.defenses = [];
+    this.pickups = [];                 // Pickup[] visibles au sol
+    // Buffs temporaires actifs (timestamps en sec depuis worldTime)
+    this.buffs = { damage: 0, speed: 0, magnet: 0 };
+    this.bonuses = computeBonuses(loadUpgrades());
     this.selectedDefense = DEFENSE_TYPE.TURRET;
     this.worldTime = 0;
     // Décor dynamique par ville + mini-carte radar
@@ -49,14 +55,23 @@ export class GameScene {
     this.bullets = [];
     this.zombies = [];
     this.defenses = [];
+    this.pickups = [];
     this.particles = [];
     this.score = 0;
     this.coins = 24;
     this.worldTime = 0;
     this.combo = 1;
     this.comboTimer = 0;
+    this.buffs = { damage: 0, speed: 0, magnet: 0 };
     this._lastStatus = "intermission";
     this.state = STATE.PLAYING;
+
+    // Recharge les bonus d'upgrade et applique le bonus HP max au joueur
+    this.bonuses = computeBonuses(loadUpgrades());
+    if (this.bonuses.hpBonus > 0) {
+      this.player.maxHp = (this.player.maxHp || CONFIG.player.maxHp) + this.bonuses.hpBonus;
+      this.player.hp = this.player.maxHp;
+    }
   }
 
   start(options) { this.reset(options); }
@@ -73,12 +88,22 @@ export class GameScene {
   }
 
   _update(dt) {
+    // Applique les multiplicateurs permanents (upgrades) + temporaires (pickups)
+    // AVANT l'update du joueur, pour que le déplacement de cette frame en profite.
+    const speedBuff = this.buffs.speed > this.worldTime ? 1.3 : 1;
+    this.player.speedMul = (this.bonuses?.speedMul || 1) * speedBuff;
+    this.player.fireRateMul = (this.bonuses?.fireRateMul || 1);
+
     this.player.update(dt, this.input, this.arena);
     this.worldTime += dt;
 
     // Tir
     if (this.input.mouse.down && this.player.canFire()) {
-      this.bullets.push(this.player.fire());
+      const b = this.player.fire();
+      // Applique les bonus permanents + buff temporaire damage (pickup ammo)
+      const dmgMul = (this.buffs.damage > this.worldTime) ? 1.5 : 1;
+      b.damage = Math.round(b.damage * dmgMul + (this.bonuses?.damageBonus || 0));
+      this.bullets.push(b);
       this.onPlayerFire?.();
       // Blague créole occasionnelle au tir (15% de chance, throttle ~3s)
       const now = performance.now();
@@ -123,11 +148,27 @@ export class GameScene {
             this._registerKill(z);
             this.onZombieKilled?.(z.type);
             this._spawnHitParticles(z.x, z.y, z.color, 14);
+            // Drop éventuel de pickup
+            const dropType = Pickup.maybeDropFor(z);
+            if (dropType) {
+              this.pickups.push(new Pickup(z.x, z.y, dropType));
+            }
           }
           break;
         }
       }
     }
+
+    // Pickups : update + ramassage
+    const magnetActive = this.buffs.magnet > this.worldTime;
+    for (const p of this.pickups) {
+      p.update(dt, this.player, magnetActive);
+      if (p.tryPickup(this.player)) {
+        this._applyPickup(p.type);
+      }
+    }
+    this.pickups = this.pickups.filter(p => p.alive);
+    // Décompte des buffs (uniquement visuel ; les check sont par worldTime)
 
     // Collisions zombies -> joueur
     for (const z of this.zombies) {
@@ -237,8 +278,38 @@ export class GameScene {
     this.combo = Math.min(5, this.combo + 1);
     this.comboTimer = 3.5;
     this.score += Math.round(zombie.score * this.combo);
-    this.coins += zombie.coins + (this.combo >= 3 ? 1 : 0) + (this.combo >= 5 ? 1 : 0);
+    const coinBase = zombie.coins + (this.combo >= 3 ? 1 : 0) + (this.combo >= 5 ? 1 : 0);
+    this.coins += Math.round(coinBase * (this.bonuses?.coinMul || 1));
     this.onCombo?.(this.combo);
+  }
+
+  /** Applique l'effet d'un pickup ramassé (heal/ammo/speed/bomb/magnet). */
+  _applyPickup(type) {
+    if (type === "heal") {
+      const maxHp = this.player.maxHp || CONFIG.player.maxHp;
+      this.player.hp = Math.min(maxHp, this.player.hp + 25);
+    } else if (type === "ammo") {
+      this.buffs.damage = this.worldTime + 8;     // 8s de buff dégâts
+    } else if (type === "speed") {
+      this.buffs.speed = this.worldTime + 6;       // 6s de buff vitesse
+    } else if (type === "bomb") {
+      // Détruit tous les zombies dans 120px
+      for (const z of this.zombies) {
+        if (!z.alive) continue;
+        const dx = z.x - this.player.x, dy = z.y - this.player.y;
+        if (dx * dx + dy * dy <= 120 * 120) {
+          z.damage_take(9999);
+          if (!z.alive) {
+            this._registerKill(z);
+            this._spawnHitParticles(z.x, z.y, "#ff6b35", 18);
+          }
+        }
+      }
+      this.onZombieKilled?.("bomb");
+    } else if (type === "magnet") {
+      this.buffs.magnet = this.worldTime + 8;
+    }
+    this.onPickup?.(type);
   }
 
   setSelectedDefense(type) {
@@ -332,6 +403,9 @@ export class GameScene {
 
     // Defenses
     for (const d of this.defenses) d.draw(ctx);
+
+    // Pickups (entre zombies et joueur pour visibilité)
+    for (const p of this.pickups) p.draw(ctx);
 
     // Bullets : avec trail/glow pour effet "tracer brûlant"
     for (const b of this.bullets) {

@@ -27,6 +27,10 @@ export function loadTopScores() {
   }
 }
 
+export function clearTopScores() {
+  try { localStorage.removeItem(STORAGE_KEYS.TOP_SCORES); } catch (_) {}
+}
+
 export function recordScore(entry) {
   const scores = loadTopScores();
   const next = {

@@ -1,9 +1,11 @@
 import { AudioManager } from "./audio/AudioManager.js";
 import { GameScene } from "./game/GameScene.js";
-import { getPlayerName, loadTopScores, recordScore, savePlayerName } from "./profile/PlayerProfile.js";
+import { getPlayerName, loadTopScores, recordScore, savePlayerName, clearTopScores } from "./profile/PlayerProfile.js";
 import { CONFIG } from "../../shared/config.js";
 import { DEFENSE_TYPE, STORAGE_KEYS } from "../../shared/constants.js";
 import { STORY, randomLine, setAdultMode } from "../../shared/story.js";
+import { UPGRADE_DATA, applyUpgrade, computeBonuses, loadUpgrades, resetUpgrades, rollUpgradeChoices } from "./game/Upgrades.js";
+import { PICKUP_TYPE_DATA } from "./game/Pickup.js";
 
 setAdultMode(CONFIG.adultMode);
 
@@ -43,8 +45,16 @@ const hud = {
   best: document.getElementById("hud-best"),
   hpFill: document.getElementById("hud-hp-fill"),
   phase: document.getElementById("hud-phase"),
-  combo: document.getElementById("hud-combo")
+  combo: document.getElementById("hud-combo"),
+  pseudo: document.getElementById("hud-pseudo"),
+  difficulty: document.getElementById("hud-difficulty"),
+  buffs: document.getElementById("hud-buffs")
 };
+
+const upgradeScreen = document.getElementById("upgrade-choice");
+const upgradeCardsEl = document.getElementById("upgrade-cards");
+const volMusicEl = document.getElementById("vol-music");
+const volSfxEl = document.getElementById("vol-sfx");
 
 function loadMissionIndex() {
   return parseInt(localStorage.getItem(STORAGE_KEYS.STORY_MISSION_INDEX) || "0", 10);
@@ -98,7 +108,18 @@ scene.onWaveCleared = (wave) => {
   if (wave >= mission.waves) {
     scene.pause();
     showVictory(mission);
+    return;
   }
+  // Choix d'upgrade entre 2 vagues sur 3 (offre toutes les 2 vagues)
+  if (wave > 0 && wave % 2 === 0) {
+    setTimeout(() => showUpgradeChoice(), 800);
+  }
+};
+
+scene.onPickup = (type) => {
+  audio.zombieDown?.("normal");
+  const data = PICKUP_TYPE_DATA[type];
+  if (data) showDialog(`${data.icon} ${data.label}`, "good");
 };
 
 scene.onBossWave = () => {
@@ -215,6 +236,102 @@ function showVictory(mission) {
   const total = parseInt(localStorage.getItem(STORAGE_KEYS.TOTAL_COINS) || "0", 10);
   localStorage.setItem(STORAGE_KEYS.TOTAL_COINS, String(total + mission.reward));
 }
+
+// ============================================================================
+// Choix d'upgrade entre vagues
+// ============================================================================
+function showUpgradeChoice() {
+  const currentUpgrades = loadUpgrades();
+  const choices = rollUpgradeChoices(currentUpgrades);
+  upgradeCardsEl.innerHTML = "";
+  for (const ch of choices) {
+    const stacks = currentUpgrades[ch.id] || 0;
+    const card = document.createElement("button");
+    card.className = "upgrade-card";
+    card.style.borderColor = ch.color;
+    card.innerHTML = `
+      <div class="upgrade-icon" style="color:${ch.color}">${ch.icon}</div>
+      <div class="upgrade-title">${ch.title}</div>
+      <div class="upgrade-desc">${ch.desc}</div>
+      <div class="upgrade-stacks">Niveau ${stacks}/${ch.maxStacks}</div>
+    `;
+    card.addEventListener("click", () => {
+      audio.click?.();
+      applyUpgrade(currentUpgrades, ch.id);
+      upgradeScreen.classList.add("hidden");
+      // Recharge immédiatement les bonus sur la scène en cours (sans attendre reset)
+      scene.bonuses = computeBonuses(loadUpgrades());
+      // Applique le bonus HP max au joueur live (les autres bonus sont lus par frame)
+      if (scene.player && scene.bonuses?.hpBonus > 0) {
+        const newMax = (CONFIG.player.maxHp || 100) + scene.bonuses.hpBonus;
+        if (newMax > scene.player.maxHp) {
+          const gained = newMax - scene.player.maxHp;
+          scene.player.maxHp = newMax;
+          scene.player.hp = Math.min(newMax, scene.player.hp + gained);
+        }
+      }
+      showDialog(`${ch.icon} ${ch.title} appliquée !`, "good");
+    });
+    upgradeCardsEl.appendChild(card);
+  }
+  upgradeScreen.classList.remove("hidden");
+}
+
+document.getElementById("btn-skip-upgrade").addEventListener("click", () => {
+  audio.click?.();
+  upgradeScreen.classList.add("hidden");
+});
+
+// Boutons effacement
+document.getElementById("btn-clear-scores").addEventListener("click", (e) => {
+  e.preventDefault();
+  audio.click?.();
+  clearTopScores();
+  renderTopScores();
+  showDialog("Top 10 effacé.", "default");
+});
+document.getElementById("btn-reset-upgrades").addEventListener("click", (e) => {
+  e.preventDefault();
+  audio.click?.();
+  resetUpgrades();
+  showDialog("Upgrades remis à zéro.", "default");
+});
+
+// Volume sliders (mute persistant + 2 canaux séparés)
+function loadVolumes() {
+  const m = parseInt(localStorage.getItem(STORAGE_KEYS.AUDIO_VOLUME_MUSIC) || "60", 10);
+  const s = parseInt(localStorage.getItem(STORAGE_KEYS.AUDIO_VOLUME_SFX) || "80", 10);
+  if (volMusicEl) volMusicEl.value = m;
+  if (volSfxEl) volSfxEl.value = s;
+  audio.setMusicVolume?.(m / 100);
+  audio.setSfxVolume?.(s / 100);
+}
+loadVolumes();
+volMusicEl?.addEventListener("input", () => {
+  const v = parseInt(volMusicEl.value, 10);
+  localStorage.setItem(STORAGE_KEYS.AUDIO_VOLUME_MUSIC, String(v));
+  audio.setMusicVolume?.(v / 100);
+});
+volSfxEl?.addEventListener("input", () => {
+  const v = parseInt(volSfxEl.value, 10);
+  localStorage.setItem(STORAGE_KEYS.AUDIO_VOLUME_SFX, String(v));
+  audio.setSfxVolume?.(v / 100);
+});
+
+// Mise à jour HUD en boucle (pseudo, difficulté, buffs)
+setInterval(() => {
+  if (hudEl.classList.contains("hidden")) return;
+  if (hud.pseudo) hud.pseudo.textContent = getPlayerName() || "Joueur";
+  if (hud.difficulty) hud.difficulty.textContent = `x${(scene.difficulty || 1).toFixed(2)}`;
+  if (hud.buffs && scene.buffs) {
+    const t = scene.worldTime || 0;
+    const list = [];
+    if (scene.buffs.damage > t) list.push(`⚡${Math.ceil(scene.buffs.damage - t)}s`);
+    if (scene.buffs.speed > t) list.push(`»${Math.ceil(scene.buffs.speed - t)}s`);
+    if (scene.buffs.magnet > t) list.push(`U${Math.ceil(scene.buffs.magnet - t)}s`);
+    hud.buffs.textContent = list.length ? list.join(" ") : "—";
+  }
+}, 250);
 
 document.getElementById("btn-intro-continue").addEventListener("click", () => {
   audio.click();
