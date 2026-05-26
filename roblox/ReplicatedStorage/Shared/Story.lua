@@ -357,15 +357,22 @@ Story.AdultLines = {
 }
 
 -- ============================================================================
--- API : pick une ligne, en priorité depuis CityHooks[city][category], sinon Lines[category]
--- Si Config.AdultMode, on tire d'abord dans AdultLines (si dispo).
+-- API : pick une ligne, en priorité depuis CityHooks[city][category],
+-- sinon Lines[category]. Si adultMode=true (param explicite OU reader global),
+-- on tire d'abord dans AdultLines.
 -- ============================================================================
-local _AdultModeReader = nil  -- set externement par injection (Config.AdultMode)
+local _AdultModeReader = nil  -- fallback global (peu utilisé désormais)
 function Story.SetAdultModeReader(fn) _AdultModeReader = fn end
 
-function Story.PickLine(category, city)
+function Story.PickLine(category, city, adultMode)
+	-- Calcule le mode adulte effectif : param explicite > reader global > false
+	local isAdult = adultMode
+	if isAdult == nil then
+		isAdult = _AdultModeReader and _AdultModeReader() or false
+	end
+
 	-- Mode adulte : si dispo, tire dans AdultLines
-	if _AdultModeReader and _AdultModeReader() and Story.AdultLines[category] then
+	if isAdult and Story.AdultLines[category] then
 		local list = Story.AdultLines[category]
 		if #list > 0 then return list[math.random(1, #list)] end
 	end

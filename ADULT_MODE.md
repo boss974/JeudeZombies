@@ -1,4 +1,21 @@
-# Mode Adulte (+18) — `Config.AdultMode`
+# Mode Adulte (+18) — Choix par joueur
+
+## Nouveauté V1.x : mode adulte INDIVIDUEL
+
+Depuis la version courante, le mode adulte n'est plus un flag global mais
+**un choix par joueur**, sécurisé par une **validation d'âge serveur**.
+
+### Comment ça marche
+
+1. À la première connexion, le joueur voit l'**écran SettingsUI**
+2. Il saisit son **pseudo**, sa **date de naissance**, et choisit son mode
+3. Le serveur **calcule l'âge** et applique :
+   - **Âge < 13** : refusé, message d'erreur
+   - **13 ≤ âge < 18** : mode enfant **forcé** (checkbox adulte verrouillée)
+   - **Âge ≥ 18** : le joueur peut cocher "mode adulte" s'il le souhaite
+4. Le choix est **sauvegardé dans DataStore** par UserId (persistant)
+5. Les dialogues du jeu sont **filtrés par joueur** : un joueur adulte voit
+   "Crève !", un joueur enfant voit "Allé marche done !" — sur la même partie
 
 ## Avertissement
 

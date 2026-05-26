@@ -23,6 +23,9 @@ local RewardService     = require(Services:WaitForChild("RewardService"))
 local PlayerDataService = require(Services:WaitForChild("PlayerDataService"))
 local ShopService       = require(Services:WaitForChild("ShopService"))
 local StoryService      = require(Services:WaitForChild("StoryService"))
+local SettingsService   = require(Services:WaitForChild("SettingsService"))
+
+SettingsService.Init()
 
 PlayerDataService.Init()
 ShopService.Init()

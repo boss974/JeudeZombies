@@ -4,11 +4,13 @@
 local Config = {}
 
 -- ============================================================================
--- MODE ADULTE (+18) — activé par le mainteneur (cf. ADULT_MODE.md).
--- Bascule les dialogues vers Story.AdultLines (créole familier vulgaire).
+-- MODE ADULTE (+18) — désormais GÉRÉ PAR JOUEUR via SettingsService.
+-- Ce flag global reste comme fallback admin (ex: forcer tout le monde en
+-- adulte sur une instance privée). En jeu normal, on lit
+-- PlayerData.Settings.AdultModeEnabled par joueur (validation âge serveur).
 -- ⚠️ Ne pas publier publiquement sur Roblox sans âge-gating officiel 17+.
 -- ============================================================================
-Config.AdultMode = true
+Config.AdultMode = false  -- fallback global (défaut OFF)
 
 -- ============================================================================
 -- MULTIJOUEUR — Roblox = multi par défaut. Limite serveur :

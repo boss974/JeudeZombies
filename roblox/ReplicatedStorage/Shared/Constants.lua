@@ -22,6 +22,10 @@ Constants.RemoteName = {
 	PlaceDefense = "PlaceDefense",
 	PurchaseProduct = "PurchaseProduct",
 	MonetizationUpdate = "MonetizationUpdate",
+	-- Settings joueur (pseudo, date naissance, mode adulte par joueur)
+	SaveSettings = "SaveSettings",
+	GetSettings = "GetSettings",
+	SettingsUpdate = "SettingsUpdate",
 }
 
 Constants.DataStoreKey = "PlayerData_v1"

@@ -11,17 +11,38 @@ local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes   = require(Shared:WaitForChild("Remotes"))
 local Story     = require(Shared:WaitForChild("Story"))
 
--- Branche le mode adulte sur Story.PickLine (Config.AdultMode → lignes crues)
+-- Fallback global Config.AdultMode (override admin). Le mode adulte
+-- *par joueur* est lu via SettingsService.
 Story.SetAdultModeReader(function() return Config.AdultMode end)
 
 local StoryService = {}
 StoryService.CurrentMissionIndex = 1
 
--- Tire une ligne contextuelle (priorité aux hooks de ville)
-local function pickLine(category)
+-- Charge SettingsService quand dispo (load tardif pour éviter cycle)
+local _SettingsService
+local function getSettings()
+	if not _SettingsService then
+		local ok, mod = pcall(function()
+			return require(script.Parent:WaitForChild("SettingsService", 5))
+		end)
+		if ok then _SettingsService = mod end
+	end
+	return _SettingsService
+end
+
+-- Tire une ligne contextuelle pour un joueur donné.
+-- Mode adulte = setting individuel du joueur (sinon fallback global Config).
+local function pickLineFor(player, category)
 	local mission = Story.Missions[StoryService.CurrentMissionIndex]
 	local city = mission and mission.city
-	return Story.PickLine(category, city)
+	local isAdult = false
+	local s = getSettings()
+	if s and player then
+		isAdult = s.IsAdultMode(player)
+	elseif not s then
+		isAdult = Config.AdultMode  -- fallback si SettingsService pas chargé
+	end
+	return Story.PickLine(category, city, isAdult)
 end
 
 local function pushDialog(player, text, kind)
@@ -31,7 +52,12 @@ end
 
 function StoryService.PushLine(player, category, kind)
 	if not player then return end
-	pushDialog(player, pickLine(category), kind or category)
+	pushDialog(player, pickLineFor(player, category), kind or category)
+end
+
+-- Conservé pour rétrocompat (sans player → ligne générique)
+local function pickLine(category)
+	return pickLineFor(nil, category)
 end
 
 function StoryService.BroadcastLine(category, kind)
