@@ -74,6 +74,7 @@ export class GameScene {
     // Tir
     if (this.input.mouse.down && this.player.canFire()) {
       this.bullets.push(this.player.fire());
+      this.onPlayerFire?.();
       // Blague créole occasionnelle au tir (15% de chance, throttle ~3s)
       const now = performance.now();
       if (Math.random() < 0.15 && now - (this._lastShootLine || 0) > 3000) {
@@ -111,10 +112,12 @@ export class GameScene {
         if (dx * dx + dy * dy <= (z.r + b.r) * (z.r + b.r)) {
           z.damage_take(b.damage);
           b.life = 0;
+          this.onBulletHit?.();
           this._spawnHitParticles(b.x, b.y, z.color);
           if (!z.alive) {
             this.score += z.score;
             this.coins += z.coins;
+            this.onZombieKilled?.(z.type);
             this._spawnHitParticles(z.x, z.y, z.color, 14);
           }
           break;
@@ -138,6 +141,7 @@ export class GameScene {
       if (dx * dx + dy * dy <= rr && z.touchCooldown <= 0) {
         if (this.player.hit(z.damage)) {
           z.touchCooldown = 0.5;
+          this.onPlayerDamaged?.();
           // Blague créole quand on se prend un coup (throttle ~2s)
           const now = performance.now();
           if (now - (this._lastHitLine || 0) > 2000) {
