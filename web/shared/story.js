@@ -22,13 +22,100 @@ export const STORY = {
   ],
 
   missions: [
-    { id: "stdenis",   city: "Saint-Denis",            title: "Acte I — La Préfecture",          waves: 3,  reward: 50 },
-    { id: "stpaul",    city: "Saint-Paul",             title: "Acte II — La Baie de l'Ouest",    waves: 5,  reward: 80 },
-    { id: "stpierre",  city: "Saint-Pierre",           title: "Acte III — La Capitale du Sud",   waves: 7,  reward: 120 },
-    { id: "stbenoit",  city: "Saint-Benoît",           title: "Acte IV — L'Est sous la Pluie",   waves: 9,  reward: 180 },
-    { id: "cilaos",    city: "Cilaos",                 title: "Acte V — Le Cirque Englouti",     waves: 10, reward: 250,  miniBoss: true },
-    { id: "plaine",    city: "Plaine-des-Cafres",      title: "Acte VI — Sur la Route du Volcan",waves: 12, reward: 350 },
-    { id: "fournaise", city: "Piton-de-la-Fournaise",  title: "Acte VII — Le Cœur du Volcan",    waves: 15, reward: 1000, boss: true }
+    {
+      id: "stdenis", city: "Saint-Denis", title: "Acte I — La Préfecture",
+      waves: 3, reward: 50, reward_item: "Photo du Barachois",
+      history: "Chef-lieu depuis 1738. Le Barachois était l'abri à pirogues des premiers colons.",
+      activities: ["Photo coucher de soleil Barachois", "Jardin de l'État", "Marché de Saint-Denis"],
+      objectives: [
+        { id: "visit_mairie",    text: "Réveille la Préfecture (Mairie)" },
+        { id: "photo_barachois", text: "Photo du Barachois" },
+        { id: "wave_1",          text: "Survis à la Vague 1" },
+        { id: "wave_2",          text: "Survis à la Vague 2" },
+        { id: "wave_3",          text: "Survis à la Vague 3" },
+        { id: "return",          text: "Retour à la Cathédrale" }
+      ]
+    },
+    {
+      id: "stpaul", city: "Saint-Paul", title: "Acte II — La Baie de l'Ouest",
+      waves: 5, reward: 80, reward_item: "Pièce d'or de La Buse",
+      history: "1ère capitale (jusqu'en 1738). Site du débarquement français 1665. Tombe de La Buse, pirate exécuté 1730.",
+      activities: ["Tombe de La Buse", "Marché Forain", "Étang St-Paul", "Baignade lagon noir"],
+      objectives: [
+        { id: "grotte",       text: "Découvre la Grotte des Premiers Français" },
+        { id: "photo_marche", text: "Photo du Marché Forain" },
+        { id: "wave_5",       text: "Survis aux 5 vagues" },
+        { id: "treasure",     text: "Cherche le trésor de La Buse (cimetière)" },
+        { id: "return",       text: "Libère la Mairie" }
+      ]
+    },
+    {
+      id: "stpierre", city: "Saint-Pierre", title: "Acte III — La Capitale du Sud",
+      waves: 7, reward: 120, reward_item: "Vinyle Maxime Laope (séga)",
+      history: "2e ville la plus peuplée. Port commercial. Marché du samedi mythique (créoles, indiens, chinois).",
+      activities: ["Photo bassin sunset", "Soirée séga", "Marché du samedi", "Baignade lagon"],
+      objectives: [
+        { id: "inspect_port", text: "Inspection du port (bassin)" },
+        { id: "photo_marche", text: "Photo du marché créole" },
+        { id: "wave_7",       text: "Survis aux 7 vagues" },
+        { id: "visit_terre",  text: "Visite Terre Sainte" },
+        { id: "return",       text: "Retour à l'église" }
+      ]
+    },
+    {
+      id: "stbenoit", city: "Saint-Benoît", title: "Acte IV — L'Est sous la Pluie",
+      waves: 9, reward: 180, reward_item: "Gousse de vanille Bourbon",
+      history: "Capitale de l'Est. Côte au vent, climat très humide. Vanille Bourbon, forte communauté tamoule.",
+      activities: ["Cascade Niagara", "Vanilleraie Roulof", "Anse des Cascades", "Promenade sous la pluie"],
+      objectives: [
+        { id: "reach_niagara", text: "Atteins la Cascade Niagara" },
+        { id: "photo_niagara", text: "Photo de la cascade" },
+        { id: "wave_9",        text: "Survis aux 9 vagues" },
+        { id: "vanille",       text: "Visite la Vanilleraie (3 gousses)" },
+        { id: "return",        text: "Retour Mairie sous la pluie" }
+      ]
+    },
+    {
+      id: "cilaos", city: "Cilaos", title: "Acte V — Le Cirque Englouti",
+      waves: 10, reward: 250, miniBoss: true, reward_item: "Bouteille Cilaos Vins",
+      history: "Cirque (caldeira). Nom tamoul Tsilaosa = lieu qu'on ne quitte pas. Route aux 400 virages. Seul terroir viticole d'outremer FR.",
+      activities: ["Roche Merveilleuse 360°", "Eaux thermales", "Vin de Cilaos", "Broderie artisanale"],
+      objectives: [
+        { id: "reach_roche", text: "Atteins la Roche Merveilleuse" },
+        { id: "photo_pano",  text: "Photo panoramique" },
+        { id: "wave_10",     text: "Survis aux 10 vagues" },
+        { id: "cave",        text: "Visite Cilaos Vins (1 bouteille)" },
+        { id: "miniboss",    text: "MINI-BOSS de la Roche Merveilleuse" },
+        { id: "return",      text: "Retour à l'église" }
+      ]
+    },
+    {
+      id: "plaine", city: "Plaine-des-Cafres", title: "Acte VI — Sur la Route du Volcan",
+      waves: 12, reward: 350, reward_item: "Cendre de la Fournaise",
+      history: "Plateau 1500m. Cafres = Africains arrivés à l'île. Élevage bovin. Climat froid.",
+      activities: ["Cité du Volcan", "Photo vache normande", "27e km", "Plaine des Sables (martien)"],
+      objectives: [
+        { id: "cite_vol",     text: "Visite la Cité du Volcan" },
+        { id: "photo_27km",   text: "Photo du 27e km" },
+        { id: "wave_12",      text: "Survis aux 12 vagues" },
+        { id: "photo_sables", text: "Photo Plaine des Sables" },
+        { id: "bellecombe",   text: "Atteins le Pas de Bellecombe" }
+      ]
+    },
+    {
+      id: "fournaise", city: "Piton-de-la-Fournaise", title: "Acte VII — Le Cœur du Volcan",
+      waves: 15, reward: 1000, boss: true, reward_item: "Photo finale de l'aube réunionnaise",
+      history: "Volcan actif (2632m). 1 éruption/an depuis 60s. Coulée 2007 jusqu'à la mer. UNESCO.",
+      activities: ["Photo cratère Dolomieu", "Marche Plaine des Sables", "Coulée 2007 + océan", "Notre-Dame des Laves (1977)"],
+      objectives: [
+        { id: "bellecombe",   text: "Pas de Bellecombe (entrée)" },
+        { id: "sables",       text: "Traverse la Plaine des Sables" },
+        { id: "wave_15",      text: "Survis aux 15 vagues" },
+        { id: "nd_laves",     text: "Visite Notre-Dame des Laves" },
+        { id: "boss_final",   text: "BOSS FINAL : Le Roi-Cendre" },
+        { id: "photo_dolomieu", text: "Photo de la victoire au cratère" }
+      ]
+    }
   ],
 
   // Mode adulte = ton "familier créole" : plus piquant que le mode enfant,
