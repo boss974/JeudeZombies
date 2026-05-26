@@ -19,6 +19,18 @@ local Constants = require(Shared:WaitForChild("Constants"))
 local Remotes   = require(Shared:WaitForChild("Remotes"))
 local Story     = require(Shared:WaitForChild("Story"))
 
+-- Chargé tardivement pour éviter cycle d'import (Mission ↔ Collection)
+local _CollectionService
+local function getCollection()
+	if not _CollectionService then
+		local ok, mod = pcall(function()
+			return require(script.Parent:WaitForChild("CollectionService", 3))
+		end)
+		if ok then _CollectionService = mod end
+	end
+	return _CollectionService
+end
+
 local MissionService = {}
 
 -- État par joueur : [player] = {
@@ -67,6 +79,10 @@ local function checkComplete(player)
 		if not s.objectives[obj.id] then allDone = false; break end
 	end
 	if allDone then
+		-- Notifie CollectionService que la ville est libérée (souvenir + achievement)
+		local cs = getCollection()
+		if cs then cs.OnCityComplete(player, mission.id) end
+
 		-- Avance à la mission suivante
 		if s.missionIndex < #Story.Missions then
 			s.missionIndex += 1
@@ -168,6 +184,11 @@ local function onClientAction(player, actionType, poiId)
 			markDone(player, obj.id)
 		end
 	end
+
+	-- Notifie CollectionService (galerie + achievement first_photo)
+	local cs = getCollection()
+	if cs then cs.OnPhotoTaken(player, poiId, mission.id) end
+
 	checkComplete(player)
 end
 

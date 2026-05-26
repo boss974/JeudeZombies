@@ -28,11 +28,31 @@ local function defaultData()
 		},
 		-- Paramètres joueur (saisis dans SettingsUI au premier lancement)
 		Settings = {
-			HasCompletedSetup = false,   -- false → afficher SettingsUI
-			Pseudo = "",                  -- nom de jeu (défaut = LocalPlayer.Name)
-			BirthDate = "",               -- "DD/MM/YYYY"
-			Age = 0,                      -- calculé serveur, validé
-			AdultModeEnabled = false,     -- choix individuel, autorisé si Age >= 18
+			HasCompletedSetup = false,
+			Pseudo = "",
+			BirthDate = "",
+			Age = 0,
+			AdultModeEnabled = false,
+		},
+		-- ===== Phase 3 : collection / galerie / achievements =====
+		-- Souvenirs : items thématiques gagnés à la fin de chaque mission
+		-- (cf. Story.Missions[i].reward_item) → { ["Photo du Barachois"]=true, ... }
+		Souvenirs = {},
+		-- Galerie : photos prises (touche E sur POI)
+		-- → { { poiId="barachois", missionId="stdenis", timestamp=os.time() }, ... }
+		Photos = {},
+		-- Achievements débloqués : { ["first_zombie"]=true, ... }
+		Achievements = {},
+		-- Compteurs utilisés pour valider les achievements
+		Stats = {
+			ZombieKills    = 0,
+			PhotoCount     = 0,
+			CityComplete   = 0,
+			PickupCount    = 0,
+			BossKilled     = 0,
+			MegaJumpCount  = 0,
+			PortalUseCount = 0,
+			GotHitCount    = 0,
 		},
 	}
 end
@@ -53,6 +73,12 @@ function PlayerDataService.Load(player)
 	data.Upgrades = data.Upgrades or { Health = 0, Speed = 0, Damage = 0 }
 	data.Monetization = data.Monetization or defaultData().Monetization
 	data.Settings = data.Settings or defaultData().Settings
+	-- Migration phase 3 : assure que les nouveaux champs existent
+	local d = defaultData()
+	data.Souvenirs    = data.Souvenirs    or d.Souvenirs
+	data.Photos       = data.Photos       or d.Photos
+	data.Achievements = data.Achievements or d.Achievements
+	data.Stats        = data.Stats        or d.Stats
 	-- Reset score de session : seul BestScore persiste
 	data.Score = 0
 	cache[player.UserId] = data

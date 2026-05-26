@@ -25,9 +25,11 @@ local ShopService       = require(Services:WaitForChild("ShopService"))
 local StoryService      = require(Services:WaitForChild("StoryService"))
 local SettingsService   = require(Services:WaitForChild("SettingsService"))
 local MissionService    = require(Services:WaitForChild("MissionService"))
+local CollectionService = require(Services:WaitForChild("CollectionService"))
 
 SettingsService.Init()
 MissionService.Init()
+CollectionService.Init()
 
 PlayerDataService.Init()
 ShopService.Init()
@@ -44,6 +46,8 @@ AdPlacementService.Init()
 WaveService.Init({
 	OnZombieKilled = function(player, zombieType)
 		RewardService.GiveKillReward(player, zombieType)
+		-- Phase 3 : compteur kill pour achievements
+		if player then CollectionService.OnZombieKilled(player) end
 	end,
 	OnWaveStart = function(waveNumber)
 		StoryService.OnWaveStart(waveNumber)
