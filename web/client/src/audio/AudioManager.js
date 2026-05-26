@@ -13,6 +13,7 @@ export class AudioManager {
     this.enabled = localStorage.getItem("zombies.audioEnabled") !== "0";
     this.started = false;
     this.mode = "menu";
+    this.weapon = "pistol";
     this.nextBeat = 0;
     this.beat = 0;
     this._timer = null;
@@ -37,11 +38,34 @@ export class AudioManager {
 
   setMode(mode) {
     this.mode = mode;
+    if (this.music && this.ctx) {
+      const target = mode === "boss" ? 0.32 : mode === "combat" ? 0.27 : mode === "ambient" ? 0.2 : 0.16;
+      this.music.gain.setTargetAtTime(target, this.ctx.currentTime, 0.08);
+    }
+  }
+
+  cycleWeapon() {
+    const order = ["pistol", "shotgun", "volcano"];
+    this.weapon = order[(order.indexOf(this.weapon) + 1) % order.length];
+    this.weaponChange(this.weapon);
+    return this.weapon;
   }
 
   click() { this._blip(520, 0.045, 0.05, "triangle"); }
   startGame() { this._rise([NOTE.c3, NOTE.g3, NOTE.c4], 0.09); }
   waveStart() { this._rise([NOTE.d2, NOTE.a2, NOTE.d3, NOTE.a3], 0.08); }
+  bossWarning(kind = "boss") {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    if (kind === "miniBoss") {
+      this._fall([NOTE.a2, NOTE.f2, NOTE.d2], 0.12);
+      this._noise(t + 0.05, 0.16, 0.08, 520, "bandpass");
+      return;
+    }
+    this._fall([NOTE.c3, NOTE.g2, NOTE.d2, NOTE.c2], 0.14);
+    this._tone(44, t, 0.75, 0.16, "sawtooth", 0.04, 31);
+    this._noise(t + 0.04, 0.45, 0.13, 260, "lowpass");
+  }
   waveClear() { this._rise([NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4], 0.11); }
   gameOver() { this._fall([NOTE.c3, NOTE.g2, NOTE.e2, NOTE.c2], 0.16); }
   victory() { this._rise([NOTE.c3, NOTE.e3, NOTE.g3, NOTE.c4, NOTE.e4], 0.12); }
@@ -50,6 +74,20 @@ export class AudioManager {
     this._ensure();
     const t = this.ctx.currentTime;
     const variance = 0.92 + Math.random() * 0.16;
+    if (this.weapon === "shotgun") {
+      this._noise(t, 0.03, 0.26, 1900 + Math.random() * 700, "highpass");
+      this._noise(t + 0.006, 0.12, 0.2, 520, "bandpass");
+      this._tone(72 * variance, t, 0.11, 0.17, "square", 0.001, 38 * variance);
+      this._tone(620 * variance, t + 0.02, 0.08, 0.05, "sawtooth", 0.004, 260);
+      return;
+    }
+    if (this.weapon === "volcano") {
+      this._noise(t, 0.028, 0.2, 3200, "highpass");
+      this._tone(155 * variance, t, 0.1, 0.13, "sawtooth", 0.002, 78 * variance);
+      this._tone(930 * variance, t + 0.018, 0.11, 0.06, "triangle", 0.005, 420);
+      this._noise(t + 0.04, 0.16, 0.09, 300, "lowpass");
+      return;
+    }
 
     // Claquement sec du départ de coup.
     this._noise(t, 0.018, 0.18, 2600 + Math.random() * 900, "highpass");
@@ -88,8 +126,34 @@ export class AudioManager {
     this._fall([NOTE.g3, NOTE.d3], 0.055);
   }
 
-  placeDefense() {
+  placeDefense(type = "turret") {
+    if (type === "barricade") {
+      this._ensure();
+      const t = this.ctx.currentTime;
+      this._tone(92, t, 0.08, 0.12, "triangle", 0.003, 55);
+      this._noise(t + 0.01, 0.08, 0.08, 380, "lowpass");
+      return;
+    }
     this._rise([NOTE.g2, NOTE.d3, NOTE.g3], 0.045);
+  }
+
+  selectDefense(type = "turret") {
+    if (type === "barricade") this._fall([NOTE.e3, NOTE.c3], 0.045);
+    else this._rise([NOTE.c3, NOTE.g3], 0.04);
+  }
+
+  weaponChange(weapon = this.weapon) {
+    this._ensure();
+    const t = this.ctx.currentTime;
+    if (weapon === "shotgun") {
+      this._noise(t, 0.05, 0.08, 900, "bandpass");
+      this._tone(180, t + 0.03, 0.05, 0.07, "square", 0.002, 120);
+    } else if (weapon === "volcano") {
+      this._tone(120, t, 0.08, 0.08, "sawtooth", 0.004, 220);
+      this._noise(t + 0.025, 0.11, 0.06, 460, "lowpass");
+    } else {
+      this._rise([NOTE.e3, NOTE.g3], 0.04);
+    }
   }
 
   _ensure() {
@@ -113,25 +177,36 @@ export class AudioManager {
     const now = this.ctx.currentTime;
     while (this.nextBeat < now + 0.28) {
       this._musicBeat(this.nextBeat, this.beat++);
-      this.nextBeat += this.mode === "combat" ? 0.31 : 0.42;
+      this.nextBeat += this.mode === "boss" ? 0.24 : this.mode === "combat" ? 0.31 : this.mode === "menu" ? 0.52 : 0.42;
     }
   }
 
   _musicBeat(t, beat) {
-    const combat = this.mode === "combat";
-    const scale = combat
+    const boss = this.mode === "boss";
+    const combat = this.mode === "combat" || boss;
+    const menu = this.mode === "menu";
+    const scale = boss
+      ? [NOTE.c2, NOTE.d2, NOTE.f2, NOTE.g2]
+      : combat
       ? [NOTE.c2, NOTE.d2, NOTE.f2, NOTE.g2, NOTE.a2]
+      : menu
+      ? [NOTE.c2, NOTE.g2, NOTE.c3]
       : [NOTE.c2, NOTE.e2, NOTE.g2, NOTE.a2, NOTE.c3];
     const bass = scale[Math.floor(beat / 2) % scale.length];
-    const lead = combat
+    const lead = boss
+      ? [NOTE.c3, NOTE.d3, NOTE.f3, NOTE.d3, NOTE.g2, NOTE.f2, NOTE.d2, NOTE.c2][beat % 8]
+      : combat
       ? [NOTE.c3, NOTE.d3, NOTE.f3, NOTE.g3, NOTE.a3, NOTE.g3, NOTE.f3, NOTE.d3][beat % 8]
+      : menu
+      ? [NOTE.g2, NOTE.c3, NOTE.g2, NOTE.d3, NOTE.c3, NOTE.g2, NOTE.e3, NOTE.d3][beat % 8]
       : [NOTE.e3, NOTE.g3, NOTE.a3, NOTE.g3, NOTE.c4, NOTE.a3, NOTE.g3, NOTE.e3][beat % 8];
 
-    if (beat % 2 === 0) this._tone(bass, t, combat ? 0.22 : 0.28, combat ? 0.055 : 0.04, "sine", 0.02, null, this.music);
-    if (beat % (combat ? 1 : 2) === 0) this._tone(lead, t + 0.03, 0.12, combat ? 0.035 : 0.026, "triangle", 0.01, null, this.music);
+    if (beat % 2 === 0) this._tone(bass, t, boss ? 0.32 : combat ? 0.22 : 0.28, boss ? 0.08 : combat ? 0.055 : 0.04, boss ? "sawtooth" : "sine", 0.02, null, this.music);
+    if (beat % (combat ? 1 : 2) === 0) this._tone(lead, t + 0.03, 0.12, boss ? 0.05 : combat ? 0.035 : 0.026, boss ? "square" : "triangle", 0.01, null, this.music);
     if (beat % 4 === 0) this._drum(t, combat);
     if (!combat && beat % 8 === 4) this._marimba(t + 0.08);
     if (combat && beat % 3 === 0) this._noise(t + 0.03, 0.035, 0.025, 1800, "highpass", this.music);
+    if (boss && beat % 2 === 1) this._noise(t + 0.02, 0.06, 0.04, 320, "lowpass", this.music);
   }
 
   _drum(t, combat) {

@@ -76,8 +76,9 @@ scene.onWaveCleared = (wave) => {
 };
 
 scene.onBossWave = () => {
-  audio.setMode("combat");
-  audio.waveStart();
+  const isBoss = scene.waveManager?.wave % CONFIG.wave.bossEveryN === 0;
+  audio.setMode(isBoss ? "boss" : "combat");
+  audio.bossWarning(isBoss ? "boss" : "miniBoss");
   showDialog(randomLine("bossWarning"), "danger");
 };
 
@@ -89,7 +90,7 @@ scene.onPlayerHit = () => showDialog(randomLine("playerHit"), "danger");
 scene.onPlayerDamaged = () => audio.playerHurt();
 scene.onLowHp = () => showDialog(randomLine("lowHp"), "danger");
 scene.onDefensePlaced = (name) => {
-  audio.placeDefense();
+  audio.placeDefense(scene.selectedDefense);
   showDialog(`${name} posée. Sa zafer !`, "good");
 };
 scene.onNoCoins = () => {
@@ -207,18 +208,29 @@ audioButton.addEventListener("click", (e) => {
 });
 
 document.getElementById("btn-defense-turret").addEventListener("click", () => {
-  audio.click();
+  audio.selectDefense(DEFENSE_TYPE.TURRET);
   scene.setSelectedDefense(DEFENSE_TYPE.TURRET);
   showDialog("Tourelle sélectionnée : clic droit pour poser.", "default");
 });
 document.getElementById("btn-defense-barricade").addEventListener("click", () => {
-  audio.click();
+  audio.selectDefense(DEFENSE_TYPE.BARRICADE);
   scene.setSelectedDefense(DEFENSE_TYPE.BARRICADE);
   showDialog("Barricade sélectionnée : clic droit pour poser.", "default");
 });
 addEventListener("keydown", (e) => {
-  if (e.code === "Digit1") scene.setSelectedDefense(DEFENSE_TYPE.TURRET);
-  if (e.code === "Digit2") scene.setSelectedDefense(DEFENSE_TYPE.BARRICADE);
+  if (e.code === "Digit1") {
+    audio.selectDefense(DEFENSE_TYPE.TURRET);
+    scene.setSelectedDefense(DEFENSE_TYPE.TURRET);
+  }
+  if (e.code === "Digit2") {
+    audio.selectDefense(DEFENSE_TYPE.BARRICADE);
+    scene.setSelectedDefense(DEFENSE_TYPE.BARRICADE);
+  }
+  if (e.code === "KeyQ") {
+    const weapon = audio.cycleWeapon();
+    const label = weapon === "shotgun" ? "Fusil lourd" : weapon === "volcano" ? "Canon Fournaise" : "Pistolet";
+    showDialog(`Arme sonore : ${label}`, "default");
+  }
 });
 
 if (localStorage.getItem(STORAGE_KEYS.STORY_INTRO_SEEN) === "1") {
