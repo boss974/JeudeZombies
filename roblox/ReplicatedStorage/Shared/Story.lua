@@ -325,34 +325,45 @@ Story.CityHooks = {
 -- MODE ADULTE (+18) — lignes plus crues, activées via Config.AdultMode
 -- Cf. ADULT_MODE.md. Reste sous limite "sans gore, sans contenu haineux".
 -- ============================================================================
+-- Mode adulte = ton "familier créole" : plus piquant, plus vivant
+-- que le mode enfant, mais SANS gros mots vulgaires cassants.
+-- (Pas de "putain", "merde", "ta race", "ton cul", "crève", "défoncer".)
 Story.AdultLines = {
 	playerHit = {
-		"Putain la moukate !",
-		"Merde, ça pique !",
-		"Allé tcho dehors sale bête !",
-		"Ah la vache, recule !",
-		"Mi sava te détruire !",
-		"A ou pez moukate, dégage !",
-		"Eh con, lâche-moi !",
+		"Aïe la moukate !",
+		"Bondieu, ça fait mal !",
+		"Tcho dehors, sale bête !",
+		"Mi sava casser vot tête !",
+		"Eh moukatère, recule donc !",
+		"Allé marche, lâche-moi !",
+		"Bondieu, ça suffit là !",
+		"Hé là, doucement bonpèr !",
 	},
 	playerShoot = {
-		"Crève !",
+		"Atak don !",
 		"Allé tcho dehors !",
-		"Mi sava te défoncer !",
+		"Mi sava casser vot tête !",
 		"Sale moukatère !",
-		"Bouge ton cul d'ici !",
-		"Tcho dehors marmaille !",
-		"Bondieu de Bondieu !",
+		"Bouge de là, marmaille !",
+		"Allé marche, sa zafer !",
+		"Bondieu, prends ça !",
+		"Tcho dehors gros bouchon !",
+		"Adieu sale bête !",
+		"Hop, à la porte !",
 	},
 	bossWarning = {
-		"Putain c'est quoi ça ?!",
-		"Bondieu, ce monstre...",
-		"Eh, ce truc va me défoncer.",
+		"Bondieu, c'est quoi ce truc ?!",
+		"Eh, ce gros bouchon va m'avoir.",
+		"Sa zafer, ça sent pas bon là...",
+		"Bondieu, garde-moi !",
+		"Aïe Bondieu, mi té pa prêt pour ça !",
 	},
 	lowHp = {
-		"Merde, je vais y rester...",
-		"Aïe ta race, soigne-moi !",
-		"Bondieu, pitié...",
+		"Aïe, mi sava tomber...",
+		"Bondieu, soigne-moi vite !",
+		"Pitié, garde-moi debout !",
+		"Mi-èm-a-ou, ne me lâche pas !",
+		"Bondieu, c'est moukate quoi...",
 	},
 }
 

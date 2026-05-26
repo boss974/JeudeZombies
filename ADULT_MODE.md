@@ -39,14 +39,17 @@ Standards.
 
 ## Ce que change le mode adulte
 
-| Aspect | Mode standard | Mode adulte |
+| Aspect | Mode standard (enfant) | Mode adulte |
 |---|---|---|
-| Dialogues | Créole familial (Bondieu, marmaille, moukate) | Créole familier vulgaire autorisé |
-| Particules zombies | Pas de sang | Particules rouges au hit |
+| Dialogues | Créole familial (Bondieu, marmaille, moukate) | Créole **familier** plus piquant (tcho dehors, sa zafer, moukatère, bonpèr…) |
+| Vulgarité explicite | Aucune | **Aucune non plus** — pas de "putain/merde/crève", on garde un ton créole vivant mais respectable |
+| Particules zombies | Pas de sang | Pas de sang non plus (rappel : non-gore) |
 | Sons zombies | `uuhhh.mp3` doux | Pitch + bas, plus grave |
-| Boss | Silhouette | Silhouette + cris intensifiés |
-| Cris joueur | "Aïe", "Bondieu" | Réplique adulte |
+| Boss | Silhouette | Silhouette + dialogues intensifiés |
+| Cris joueur | "Aïe", "Bondieu" | "Tcho dehors !", "Mi sava casser vot tête !", "Allé marche !" |
 | Caissons de loot | Bois sage | Identique |
+
+**Décision éditoriale** : même en mode adulte, le ton reste **créole familier vivant** mais **sans gros mots cassants** (pas de "putain", "merde", "crève", "défoncer", "ta race", "ton cul"). Le but est de donner de la **personnalité créole** au jeu, pas de tomber dans la vulgarité.
 
 **Ce qui ne change PAS** (limites fixes même en +18) :
 
