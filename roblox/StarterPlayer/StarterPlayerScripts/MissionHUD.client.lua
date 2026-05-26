@@ -159,6 +159,23 @@ if Remotes then
 			end
 		end)
 	end
+
+	-- Écoute MissionUpdate (état serveur des objectifs)
+	local missionR = Remotes:FindFirstChild("MissionUpdate")
+	if missionR then
+		missionR.OnClientEvent:Connect(function(missionIdx, objectives)
+			if typeof(missionIdx) == "number" then
+				currentMissionIdx = missionIdx
+			end
+			if typeof(objectives) == "table" then
+				completedObjectives = {}
+				for id, done in pairs(objectives) do
+					if done then completedObjectives[id] = true end
+				end
+			end
+			renderObjectives()
+		end)
+	end
 end
 
 -- Toggle avec M (Mission)

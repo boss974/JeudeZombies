@@ -26,6 +26,9 @@ Constants.RemoteName = {
 	SaveSettings = "SaveSettings",
 	GetSettings = "GetSettings",
 	SettingsUpdate = "SettingsUpdate",
+	-- Missions séquentielles
+	MissionUpdate = "MissionUpdate",      -- server → client : push état objectifs
+	MissionAction = "MissionAction",      -- client → server : photo, touch_poi
 }
 
 Constants.DataStoreKey = "PlayerData_v1"

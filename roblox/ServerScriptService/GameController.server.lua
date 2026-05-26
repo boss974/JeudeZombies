@@ -24,8 +24,10 @@ local PlayerDataService = require(Services:WaitForChild("PlayerDataService"))
 local ShopService       = require(Services:WaitForChild("ShopService"))
 local StoryService      = require(Services:WaitForChild("StoryService"))
 local SettingsService   = require(Services:WaitForChild("SettingsService"))
+local MissionService    = require(Services:WaitForChild("MissionService"))
 
 SettingsService.Init()
+MissionService.Init()
 
 PlayerDataService.Init()
 ShopService.Init()
@@ -56,6 +58,7 @@ WaveService.Init({
 			RewardService.GiveWaveClearBonus(plr)
 		end
 		StoryService.OnWaveCleared(waveNumber)
+		MissionService.OnWaveCleared(waveNumber)
 		-- Son de victoire de vague
 		if _G.SoundManager then _G.SoundManager.Play("Victory") end
 		print(("[GameController] Vague %d nettoyée"):format(waveNumber))
