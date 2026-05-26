@@ -98,11 +98,18 @@ task.spawn(function()
 	frame.Visible = false
 end)
 
+local function toggleKeybinds()
+	frame.Visible = not frame.Visible
+	frame.BackgroundTransparency = 0.15
+end
+
 -- Toggle TAB
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if input.KeyCode == Enum.KeyCode.Tab then
-		frame.Visible = not frame.Visible
-		frame.BackgroundTransparency = 0.15
+		toggleKeybinds()
 	end
 end)
+
+-- Expose pour MobileControls
+_G.ToggleKeybinds = toggleKeybinds

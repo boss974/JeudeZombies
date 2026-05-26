@@ -376,18 +376,23 @@ end)
 -- Cf. KeybindsHud : F1 = paramètres (au lieu de TAB qui ouvre la liste touches)
 
 local UserInputService = game:GetService("UserInputService")
+local function toggleSettings()
+	if settingsScreen then
+		settingsScreen:Destroy()
+		settingsScreen = nil
+	else
+		buildUI()
+	end
+end
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if input.KeyCode == Enum.KeyCode.F1 then
-		if settingsScreen then
-			-- Toggle : si déjà ouvert, on ferme
-			settingsScreen:Destroy()
-			settingsScreen = nil
-		else
-			buildUI()
-		end
+		toggleSettings()
 	end
 end)
+
+-- Expose pour MobileControls
+_G.ToggleSettings = toggleSettings
 
 -- Expose le mode adulte au client (pour Story côté client si besoin)
 _G.IsAdultMode = function()

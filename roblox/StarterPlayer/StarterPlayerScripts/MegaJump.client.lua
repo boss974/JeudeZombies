@@ -69,6 +69,9 @@ UserInputService.InputBegan:Connect(function(input, gp)
 	end
 end)
 
+-- Expose pour MobileControls (bouton tactile)
+_G.MegaJumpTrigger = megaJump
+
 -- HUD discret : indicateur de cooldown en bas gauche
 local pg = player:WaitForChild("PlayerGui")
 local screen = Instance.new("ScreenGui")
