@@ -291,7 +291,10 @@ export class GameScene {
       ctx.fillRect(0, 0, this.arena.width, this.arena.height);
     }
 
-    if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER && this.state !== STATE.PAUSED) return;
+    if (this.state !== STATE.PLAYING && this.state !== STATE.GAMEOVER && this.state !== STATE.PAUSED) {
+      ctx.restore();
+      return;
+    }
 
     // Particules (impacts)
     for (const p of this.particles) {
