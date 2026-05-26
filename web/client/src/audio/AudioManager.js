@@ -49,8 +49,18 @@ export class AudioManager {
   shoot() {
     this._ensure();
     const t = this.ctx.currentTime;
-    this._noise(t, 0.045, 0.06, 900, "highpass");
-    this._tone(145, t, 0.035, 0.05, "square", 0.002);
+    const variance = 0.92 + Math.random() * 0.16;
+
+    // Claquement sec du départ de coup.
+    this._noise(t, 0.018, 0.18, 2600 + Math.random() * 900, "highpass");
+    // Souffle de poudre, plus large et plus grave.
+    this._noise(t + 0.006, 0.075, 0.13, 820 + Math.random() * 180, "bandpass");
+    // Kick grave du recul.
+    this._tone(92 * variance, t, 0.07, 0.12, "square", 0.001, 48 * variance);
+    // Résonance métallique courte du canon.
+    this._tone(1180 * variance, t + 0.012, 0.035, 0.035, "triangle", 0.002, 720 * variance);
+    // Petit souffle de queue pour donner une sensation d'espace.
+    this._noise(t + 0.035, 0.055, 0.035, 420, "lowpass");
   }
 
   hit() {
