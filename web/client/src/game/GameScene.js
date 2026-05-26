@@ -35,6 +35,9 @@ export class GameScene {
     this.corpses  = [];                // zombies morts en fade-out
     this.shockwaves = [];              // anneaux d'onde de choc (exploder, roar, boss spawn)
     this.bossFlash = 0;                // alpha plein écran orange quand boss spawn
+    this.weapon = "pistol";            // arme actuelle ("pistol"/"shotgun"/"volcano") - pour couleur trails
+    this.weather = null;                // {type:"rain"|"ash"|"sun", particles:[]} initialisé au reset par mission
+    this.paused = false;                // pause sur ESC
     // Buffs temporaires actifs (timestamps en sec depuis worldTime)
     this.buffs = { damage: 0, speed: 0, magnet: 0 };
     this.bonuses = computeBonuses(loadUpgrades());
@@ -99,6 +102,72 @@ export class GameScene {
       this.player.maxHp = (this.player.maxHp || CONFIG.player.maxHp) + this.bonuses.hpBonus;
       this.player.hp = this.player.maxHp;
     }
+    // Météo dynamique par mission (pluie/cendres/soleil selon localisation Réunion)
+    this._initWeather();
+  }
+
+  /** Initialise les particules météo selon la mission active.
+   * - stbenoit (Est) : pluie battante
+   * - fournaise (cœur volcan) : pluie de cendres dense
+   * - plaine (route du volcan) : cendres légères
+   * - cilaos (cirque) : brume (overlay)
+   * - sun (autres) : particules dorées rares
+   */
+  _initWeather() {
+    const id = this.mission?.id || "stdenis";
+    const W = this.arena.width;
+    const H = this.arena.height;
+    let type = "sun";
+    if (id === "stbenoit") type = "rain";
+    else if (id === "fournaise") type = "ash-heavy";
+    else if (id === "plaine") type = "ash";
+    else if (id === "cilaos") type = "mist";
+    const counts = { rain: 120, "ash-heavy": 90, ash: 50, mist: 0, sun: 18 };
+    const n = counts[type] || 0;
+    const particles = [];
+    for (let i = 0; i < n; i++) {
+      particles.push(this._makeWeatherParticle(type, W, H, true));
+    }
+    this.weather = { type, particles };
+  }
+
+  _makeWeatherParticle(type, W, H, spawnAnywhere = false) {
+    // spawnAnywhere = à l'init, on remplit l'écran. Sinon on respawn en haut.
+    if (type === "rain") {
+      return {
+        x: Math.random() * W,
+        y: spawnAnywhere ? Math.random() * H : -10,
+        vx: -120,  // pluie oblique (vent d'Est)
+        vy: 720 + Math.random() * 280,
+        len: 14 + Math.random() * 8,
+        alpha: 0.35 + Math.random() * 0.25
+      };
+    }
+    if (type === "ash" || type === "ash-heavy") {
+      const heavy = type === "ash-heavy";
+      return {
+        x: Math.random() * W,
+        y: spawnAnywhere ? Math.random() * H : -10,
+        vx: 30 + Math.random() * 40,  // dérive Sud-Est
+        vy: 35 + Math.random() * 50,
+        r: 1.2 + Math.random() * (heavy ? 2.5 : 1.5),
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: 1.2 + Math.random(),
+        color: heavy
+          ? `rgba(40,30,25,${0.5 + Math.random() * 0.4})`
+          : `rgba(80,70,65,${0.3 + Math.random() * 0.3})`
+      };
+    }
+    // sun : poussière dorée
+    return {
+      x: Math.random() * W,
+      y: spawnAnywhere ? Math.random() * H : -10,
+      vx: 8 + Math.random() * 6,
+      vy: 12 + Math.random() * 10,
+      r: 1 + Math.random() * 1.5,
+      alpha: 0.4 + Math.random() * 0.3,
+      color: "#ffe6a0"
+    };
   }
 
   start(options) { this.reset(options); }
@@ -139,6 +208,7 @@ export class GameScene {
       const b = this.player.fire();
       const dmgMul = (this.buffs.damage > this.worldTime) ? 1.5 : 1;
       b.damage = Math.round(b.damage * dmgMul + (this.bonuses?.damageBonus || 0));
+      b.weapon = this.weapon;
       this.bullets.push(b);
       this.onPlayerFire?.();
       const now = performance.now();
@@ -147,11 +217,12 @@ export class GameScene {
         this.onPlayerShoot?.();
       }
     }
-    // Tir P2 (manette)
+    // Tir P2 (manette) - utilise la même arme que P1 (cycle global)
     if (this.player2 && this.player2.alive && this.input2.mouse.down && this.player2.canFire()) {
       const b = this.player2.fire();
       const dmgMul = (this.buffs.damage > this.worldTime) ? 1.5 : 1;
       b.damage = Math.round(b.damage * dmgMul + (this.bonuses?.damageBonus || 0));
+      b.weapon = this.weapon;
       this.bullets.push(b);
       this.onPlayerFire?.();
     }
@@ -352,6 +423,24 @@ export class GameScene {
 
     // Boss flash décroissant
     this.bossFlash = Math.max(0, this.bossFlash - dt * 1.4);
+
+    // Météo : update positions, recyclage des particules sorties d'écran
+    if (this.weather && this.weather.particles.length > 0) {
+      const W = this.arena.width, H = this.arena.height;
+      const type = this.weather.type;
+      for (const p of this.weather.particles) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (type === "ash" || type === "ash-heavy") {
+          p.wobble += p.wobbleSpeed * dt;
+          p.x += Math.sin(p.wobble) * 8 * dt;
+        }
+        // Recycle quand sort
+        if (p.y > H + 20 || p.x < -30 || p.x > W + 30) {
+          Object.assign(p, this._makeWeatherParticle(type, W, H, false));
+        }
+      }
+    }
 
     // Nettoyage
     this.bullets = this.bullets.filter(b => b.life > 0
@@ -623,6 +712,63 @@ export class GameScene {
     this._shake = Math.min(14, this._shake + 5);
   }
 
+  /** Rendu des particules météo (pluie, cendres, soleil) + brume optionnelle. */
+  _drawWeather(ctx) {
+    if (!this.weather) return;
+    const type = this.weather.type;
+    if (type === "mist") {
+      // Brume légère grise sur tout l'écran (cirque de Cilaos)
+      const grd = ctx.createLinearGradient(0, 0, 0, this.arena.height);
+      grd.addColorStop(0, "rgba(220,225,230,0.18)");
+      grd.addColorStop(0.5, "rgba(200,210,215,0.10)");
+      grd.addColorStop(1, "rgba(170,180,190,0.05)");
+      ctx.fillStyle = grd;
+      ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+      return;
+    }
+    if (type === "rain") {
+      // Pluie : traits obliques bleu-blanc transparents
+      ctx.strokeStyle = "rgba(170,210,235,0.55)";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (const p of this.weather.particles) {
+        // Trajet : de (x, y) vers (x + vx*0.02, y + vy*0.02) → orientation du trait
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x - p.len * 0.18, p.y + p.len);
+      }
+      ctx.stroke();
+      // Voile bleuté général
+      ctx.fillStyle = "rgba(80,110,140,0.07)";
+      ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+      return;
+    }
+    if (type === "ash" || type === "ash-heavy") {
+      // Cendres : petits cercles gris-marron qui dérivent
+      for (const p of this.weather.particles) {
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      if (type === "ash-heavy") {
+        // Voile rougeâtre pour le cœur du volcan
+        ctx.fillStyle = "rgba(80,30,15,0.12)";
+        ctx.fillRect(0, 0, this.arena.width, this.arena.height);
+      }
+      return;
+    }
+    if (type === "sun") {
+      // Poussière dorée volante (peu nombreuse, brillante)
+      for (const p of this.weather.particles) {
+        ctx.fillStyle = `rgba(255,230,160,${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      return;
+    }
+  }
+
   /** Renvoie le joueur vivant le plus proche d'une entité (pour zombies + pickups). */
   _nearestPlayerTo(entity) {
     const a = this.player;
@@ -744,29 +890,40 @@ export class GameScene {
     // Pickups (entre zombies et joueur pour visibilité)
     for (const p of this.pickups) p.draw(ctx);
 
-    // Bullets : avec trail/glow pour effet "tracer brûlant"
+    // Bullets : trail/glow palette par arme
+    // Palette : halo extérieur (rgba), trail intermédiaire (rgba), cœur brillant (solide)
+    const BULLET_FX = {
+      pistol:   { halo: "rgba(255,140,40,0.35)",  trail: "255,215,107", core: "#fff6c8" },  // jaune doré
+      shotgun:  { halo: "rgba(255,60,60,0.40)",   trail: "255,120,80",  core: "#ffe1d0" },  // rouge flamboyant
+      volcano:  { halo: "rgba(255,80,20,0.50)",   trail: "255,170,40",  core: "#fff0a0" },  // orange volcan
+      turret:   { halo: "rgba(244,185,66,0.32)",  trail: "244,185,66",  core: "#fff2b8" },  // cannelle pâle
+    };
     for (const b of this.bullets) {
-      // Halo extérieur orange transparent
-      ctx.fillStyle = "rgba(255,140,40,0.35)";
+      const fx = BULLET_FX[b.weapon] || BULLET_FX.pistol;
+      // Halo extérieur
+      ctx.fillStyle = fx.halo;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r * 2.4, 0, Math.PI * 2);
       ctx.fill();
-      // Trail derrière (3 cercles décroissants dans la direction opposée)
+      // Trail (3 cercles décroissants dans la direction opposée)
       const sp = Math.hypot(b.vx, b.vy) || 1;
       for (let i = 1; i <= 3; i++) {
         const tx = b.x - (b.vx / sp) * i * 4;
         const ty = b.y - (b.vy / sp) * i * 4;
-        ctx.fillStyle = `rgba(255,215,107,${0.6 - i * 0.18})`;
+        ctx.fillStyle = `rgba(${fx.trail},${0.6 - i * 0.18})`;
         ctx.beginPath();
         ctx.arc(tx, ty, b.r * (1.0 - i * 0.2), 0, Math.PI * 2);
         ctx.fill();
       }
       // Cœur brillant
-      ctx.fillStyle = "#fff6c8";
+      ctx.fillStyle = fx.core;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    // Météo dynamique par mission (entre décor et sprites pour profondeur)
+    this._drawWeather(ctx);
 
     // Joueur(s) (P2 sous P1 pour pas masquer le curseur de P1)
     if (this.player2 && this.player2.alive) this.player2.draw(ctx, tSec);

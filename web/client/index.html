@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>L'Éveil de la Fournaise "” Jeu de Zombies</title>
+  <title>L'Éveil de la Fournaise — Jeu de Zombies</title>
   <meta name="description" content="Tower defense cartoon sur l'île de La Réunion. Sauve les 24 communes des zombies réveillés par le Piton de la Fournaise." />
   <link rel="stylesheet" href="src/ui/style.css" />
 
@@ -224,7 +224,7 @@
       <symbol id="ico-coin" viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="10" fill="#f4b942" stroke="#b8902c" stroke-width="1.5"/>
         <circle cx="12" cy="12" r="6.5" fill="none" stroke="#b8902c" stroke-width="1"/>
-        <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#b8902c" font-family="Segoe UI,system-ui,sans-serif">Â¢</text>
+        <text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="#b8902c" font-family="Segoe UI,system-ui,sans-serif">¢</text>
       </symbol>
 
       <symbol id="ico-heart" viewBox="0 0 24 24">
@@ -251,7 +251,7 @@
     <button id="btn-audio" type="button" aria-label="Activer ou couper le son">SON ON</button>
 
     <!-- ===========================================================
-         HUD "” panneau créole, avec icônes
+         HUD — panneau créole, avec icônes
          =========================================================== -->
     <div id="hud" class="hidden">
       <div class="hud-row hud-player">
@@ -375,7 +375,7 @@
     <div id="menu" class="hidden">
       <div class="decor-sky"></div>
 
-      <!-- ÃŽle au loin, silhouette -->
+      <!-- Île au loin, silhouette -->
       <svg class="decor-island" role="img" aria-label="Silhouette de l'île de La Réunion"><use href="#ico-island"/></svg>
 
       <!-- Palmiers latéraux -->
@@ -404,14 +404,14 @@
 
       <h1>L'Éveil de la Fournaise</h1>
       <p class="tag">Prototype Web Solo</p>
-      <p class="mission-preview"><span id="menu-mission-title">Acte I "” La Préfecture</span></p>
+      <p class="mission-preview"><span id="menu-mission-title">Acte I — La Préfecture</span></p>
       <p class="mission-city">Ville : <span id="menu-mission-city">Saint-Denis</span></p>
       <div class="player-panel">
         <label for="player-name">Nom du joueur</label>
         <input id="player-name" maxlength="18" autocomplete="nickname" placeholder="Ton pseudo" />
       </div>
       <button id="btn-start">Jouer</button>
-      <p class="hint">ZQSD ou Flèches pour bouger "” Souris pour viser et tirer "” Q change le son d'arme "” 1/2 puis E ou clic droit pour poser des défenses</p>
+      <p class="hint">ZQSD ou Flèches pour bouger — Souris pour viser et tirer — Q change le son d'arme — 1/2 puis E ou clic droit pour poser des défenses</p>
       <p class="record">Meilleur score : <span id="menu-best">0</span></p>
       <div class="leaderboard">
         <h2>Top 10 local</h2>
@@ -441,6 +441,20 @@
           <use href="#bg-waves" x="0"    width="1200" height="80"/>
           <use href="#bg-waves" x="1200" width="1200" height="80"/>
         </svg>
+      </div>
+    </div>
+
+    <!-- ===========================================================
+         PAUSE MENU (overlay au-dessus de l'arène, déclenché par ESC)
+         =========================================================== -->
+    <div id="pause-menu" class="hidden">
+      <div class="pause-card">
+        <h2>Pause</h2>
+        <p class="pause-sub">Le combat s'arrête, prends ton souffle.</p>
+        <button id="btn-pause-resume" class="btn-primary">Reprendre</button>
+        <button id="btn-pause-restart" class="btn-secondary">Recommencer la mission</button>
+        <button id="btn-pause-menu" class="btn-secondary">Quitter au menu</button>
+        <p class="pause-hint">Appuie sur <kbd>ESC</kbd> pour reprendre instantanément</p>
       </div>
     </div>
 

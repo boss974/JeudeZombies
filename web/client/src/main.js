@@ -448,8 +448,43 @@ addEventListener("keydown", (e) => {
   if (e.code === "KeyQ") {
     const weapon = audio.cycleWeapon();
     const label = weapon === "shotgun" ? "Fusil lourd" : weapon === "volcano" ? "Canon Fournaise" : "Pistolet";
-    showDialog(`Arme sonore : ${label}`, "default");
+    showDialog(`Arme : ${label}`, "default");
+    scene.weapon = weapon;  // sync pour la couleur des trails
   }
+  // Pause menu ESC : toggle in-game, ouvre/ferme l'overlay
+  if (e.code === "Escape") {
+    if (gameover.classList.contains("hidden") === false) return;  // pas en game over
+    if (menu.classList.contains("hidden") === false) return;       // pas en menu
+    togglePauseMenu();
+  }
+});
+
+// === Pause Menu ===
+const pauseOverlay = document.getElementById("pause-menu");
+function togglePauseMenu() {
+  if (!pauseOverlay) return;
+  if (pauseOverlay.classList.contains("hidden")) {
+    pauseOverlay.classList.remove("hidden");
+    scene.pause?.();
+    audio.setMode?.("menu");
+  } else {
+    pauseOverlay.classList.add("hidden");
+    scene.resume?.();
+    audio.setMode?.("game");
+  }
+}
+document.getElementById("btn-pause-resume")?.addEventListener("click", () => togglePauseMenu());
+document.getElementById("btn-pause-restart")?.addEventListener("click", () => {
+  pauseOverlay.classList.add("hidden");
+  scene.start({ difficulty: scene.difficulty });
+  audio.setMode?.("game");
+});
+document.getElementById("btn-pause-menu")?.addEventListener("click", () => {
+  pauseOverlay.classList.add("hidden");
+  scene.pause?.();
+  hudEl.classList.add("hidden");
+  audio.setMode?.("menu");
+  showMenu();
 });
 
 if (localStorage.getItem(STORAGE_KEYS.STORY_INTRO_SEEN) === "1") {

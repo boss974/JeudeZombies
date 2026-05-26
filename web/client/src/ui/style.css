@@ -414,6 +414,79 @@ html, body {
 /* ============================================================================
  * Écrans plein écran : intro, menu, gameover, victory
  * ============================================================================ */
+/* ============= PAUSE MENU ============= */
+#pause-menu {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: radial-gradient(circle at center, rgba(20, 12, 8, 0.78), rgba(0, 0, 0, 0.94));
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#pause-menu.hidden { display: none; }
+#pause-menu .pause-card {
+  background: linear-gradient(160deg, rgba(36, 24, 18, 0.95), rgba(28, 18, 14, 0.95));
+  border: 2px solid var(--c-cannelle, #f4b942);
+  border-radius: 22px;
+  padding: 38px 50px;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5), 0 0 32px rgba(244, 185, 66, 0.18);
+  max-width: 420px;
+}
+#pause-menu h2 {
+  margin: 0 0 8px 0;
+  font-size: 38px;
+  color: var(--c-cannelle, #f4b942);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+#pause-menu .pause-sub {
+  color: #d8c8a8;
+  font-style: italic;
+  margin-bottom: 24px;
+}
+#pause-menu button {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+#pause-menu .btn-primary {
+  background: linear-gradient(180deg, #ff8a40, #e94e1b);
+  color: white;
+  box-shadow: 0 4px 14px rgba(233, 78, 27, 0.5);
+}
+#pause-menu .btn-secondary {
+  background: linear-gradient(180deg, #4a3520, #2e2014);
+  color: #f4d8a0;
+  border: 1px solid #5a3a1a;
+}
+#pause-menu button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+#pause-menu .pause-hint {
+  margin-top: 18px;
+  color: #b8a888;
+  font-size: 13px;
+}
+#pause-menu kbd {
+  background: #2e2014;
+  border: 1px solid #5a3a1a;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #f4d8a0;
+}
+
 #intro, #menu, #gameover, #victory {
   position: absolute;
   inset: 0;
