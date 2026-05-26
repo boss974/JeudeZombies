@@ -2,6 +2,10 @@
 // Garde les valeurs simples : facile à relire et équilibrer.
 
 export const CONFIG = {
+  // Mode adulte (+18) — bascule les dialogues vers STORY.adultLines.
+  // Voir ADULT_MODE.md pour les implications et les limites maintenues.
+  adultMode: true,
+
   brand: {
     colors: {
       bleuLagon: "#0099b8",

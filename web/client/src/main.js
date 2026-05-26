@@ -1,6 +1,11 @@
 import { GameScene } from "./game/GameScene.js";
+import { CONFIG } from "../../shared/config.js";
 import { DEFENSE_TYPE, STORAGE_KEYS } from "../../shared/constants.js";
-import { STORY, randomLine } from "../../shared/story.js";
+import { STORY, randomLine, setAdultMode } from "../../shared/story.js";
+
+// Active le mode adulte +18 selon CONFIG.adultMode (cf. ADULT_MODE.md).
+// Bascule les dialogues vers STORY.adultLines (créole familier vulgaire).
+setAdultMode(CONFIG.adultMode);
 
 const canvas    = document.getElementById("game");
 const introEl   = document.getElementById("intro");

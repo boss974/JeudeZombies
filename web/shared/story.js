@@ -31,6 +31,40 @@ export const STORY = {
     { id: "fournaise", city: "Piton-de-la-Fournaise",  title: "Acte VII — Le Cœur du Volcan",    waves: 15, reward: 1000, boss: true }
   ],
 
+  // Lignes adultes (+18) — utilisées en priorité si CONFIG.adultMode est true.
+  // Cf. ADULT_MODE.md pour le ton (créole familier vulgaire, pas de gore explicite,
+  // pas de contenu haineux ni sexuel).
+  adultLines: {
+    playerHit: [
+      "Putain la moukate !",
+      "Merde, ça pique !",
+      "Allé tcho dehors sale bête !",
+      "Ah la vache, recule !",
+      "Mi sava te détruire !",
+      "A ou pez moukate, dégage !",
+      "Eh con, lâche-moi !"
+    ],
+    playerShoot: [
+      "Crève !",
+      "Allé tcho dehors !",
+      "Mi sava te défoncer !",
+      "Sale moukatère !",
+      "Bouge ton cul d'ici !",
+      "Tcho dehors marmaille !",
+      "Bondieu de Bondieu !"
+    ],
+    bossWarning: [
+      "Putain c'est quoi ça ?!",
+      "Bondieu, ce monstre...",
+      "Eh, ce truc va me défoncer."
+    ],
+    lowHp: [
+      "Merde, je vais y rester...",
+      "Aïe ta race, soigne-moi !",
+      "Bondieu, pitié..."
+    ]
+  },
+
   lines: {
     waveStart: [
       "Ils arrivent...",
@@ -95,7 +129,25 @@ export const STORY = {
 };
 
 export function randomLine(category) {
+  // Lazy import pour éviter une dépendance cyclique avec config.js : on lit
+  // STORY.adultModeReader (injecté plus bas) ou window pour récupérer le flag.
+  let isAdult = false;
+  try {
+    // Préférence : valeur stockée dans STORY.adultModeOverride si on l'a poussée
+    if (typeof STORY.adultModeOverride === "boolean") isAdult = STORY.adultModeOverride;
+  } catch (_) {}
+
+  if (isAdult && STORY.adultLines && STORY.adultLines[category]) {
+    const list = STORY.adultLines[category];
+    if (list && list.length) return list[Math.floor(Math.random() * list.length)];
+  }
   const list = STORY.lines[category];
   if (!list || !list.length) return "";
   return list[Math.floor(Math.random() * list.length)];
+}
+
+// Permet à main.js de pousser le flag CONFIG.adultMode dans STORY sans
+// dépendance cyclique entre les modules shared/.
+export function setAdultMode(active) {
+  STORY.adultModeOverride = !!active;
 }

@@ -4,11 +4,11 @@
 local Config = {}
 
 -- ============================================================================
--- MODE ADULTE (+18) — défaut OFF. Voir ADULT_MODE.md.
+-- MODE ADULTE (+18) — activé par le mainteneur (cf. ADULT_MODE.md).
 -- Bascule les dialogues vers Story.AdultLines (créole familier vulgaire).
--- Ne pas activer pour publication Roblox publique sans âge-gating officiel.
+-- ⚠️ Ne pas publier publiquement sur Roblox sans âge-gating officiel 17+.
 -- ============================================================================
-Config.AdultMode = false
+Config.AdultMode = true
 
 -- ============================================================================
 -- MULTIJOUEUR — Roblox = multi par défaut. Limite serveur :
