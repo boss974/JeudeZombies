@@ -1,5 +1,6 @@
 import { AudioManager } from "./audio/AudioManager.js";
 import { GameScene } from "./game/GameScene.js";
+import { getPlayerName, loadTopScores, recordScore, savePlayerName } from "./profile/PlayerProfile.js";
 import { CONFIG } from "../../shared/config.js";
 import { DEFENSE_TYPE, STORAGE_KEYS } from "../../shared/constants.js";
 import { STORY, randomLine, setAdultMode } from "../../shared/story.js";
@@ -15,6 +16,8 @@ const victory = document.getElementById("victory");
 const dialog = document.getElementById("dialog");
 const dialogText = document.getElementById("dialog-text");
 const audioButton = document.getElementById("btn-audio");
+const playerNameInput = document.getElementById("player-name");
+const topScoresEl = document.getElementById("top-scores");
 
 const audio = new AudioManager();
 window.__audio = audio;
@@ -53,6 +56,28 @@ function saveMissionIndex(i) {
 
 function currentMission() {
   return STORY.missions[Math.min(loadMissionIndex(), STORY.missions.length - 1)];
+}
+
+function currentDifficulty() {
+  const missionIndex = loadMissionIndex();
+  const topScorePressure = Math.min(0.5, (parseInt(localStorage.getItem(STORAGE_KEYS.BEST_SCORE) || "0", 10) / 5000));
+  return 1 + missionIndex * 0.16 + topScorePressure;
+}
+
+function renderTopScores() {
+  const scores = loadTopScores();
+  topScoresEl.innerHTML = "";
+  if (!scores.length) {
+    const li = document.createElement("li");
+    li.textContent = "Aucun record pour l'instant";
+    topScoresEl.appendChild(li);
+    return;
+  }
+  for (const s of scores) {
+    const li = document.createElement("li");
+    li.textContent = `${s.name} - ${s.score} pts - vague ${s.wave} - ${s.city}`;
+    topScoresEl.appendChild(li);
+  }
 }
 
 const scene = new GameScene(canvas, hud);
@@ -101,10 +126,13 @@ scene.onNoCoins = () => {
 };
 
 scene.onGameOver = ({ wave, score, coins }) => {
+  const result = recordScore({ name: playerNameInput.value, score, wave, coins, city: currentMission().city });
   document.getElementById("go-mission").textContent = currentMission().city;
   document.getElementById("go-wave").textContent = wave;
   document.getElementById("go-score").textContent = score;
   document.getElementById("go-coins").textContent = coins;
+  document.getElementById("go-rank").textContent = result.rank > 0 ? `Top 10 local : rang #${result.rank}` : "Pas dans le Top 10";
+  renderTopScores();
   hudEl.classList.add("hidden");
   hideDialog();
   audio.setMode("menu");
@@ -149,12 +177,16 @@ function showMenu() {
   document.getElementById("menu-mission-title").textContent = mission.title;
   document.getElementById("menu-mission-city").textContent = mission.city;
   document.getElementById("menu-best").textContent = localStorage.getItem(STORAGE_KEYS.BEST_SCORE) || "0";
+  playerNameInput.value = getPlayerName();
+  renderTopScores();
 }
 
 function startGame() {
   userAudioStart();
   audio.setMode("combat");
   audio.startGame();
+  const playerName = savePlayerName(playerNameInput.value);
+  playerNameInput.value = playerName;
   const mission = currentMission();
   introEl.classList.add("hidden");
   menuEl.classList.add("hidden");
@@ -163,7 +195,7 @@ function startGame() {
   hudEl.classList.remove("hidden");
   hud.mission.textContent = mission.city;
   scene.mission = mission;
-  scene.start();
+  scene.start({ difficulty: currentDifficulty() });
   setTimeout(() => showDialog(`${mission.title} - ${mission.city}`, "default"), 600);
 }
 

@@ -4,8 +4,9 @@ import { Zombie } from "./Zombie.js";
 
 // Pilote les vagues : difficulté progressive, mini-boss et boss périodiques.
 export class WaveManager {
-  constructor(arena) {
+  constructor(arena, difficulty = 1) {
     this.arena = arena;
+    this.difficulty = Math.max(1, difficulty);
     this.wave = 0;
     this.toSpawn = 0;
     this.spawnTimer = 0;
@@ -28,7 +29,7 @@ export class WaveManager {
   }
 
   _enemiesForWave(n) {
-    return CONFIG.wave.baseEnemies + CONFIG.wave.enemiesPerWave * (n - 1);
+    return Math.ceil((CONFIG.wave.baseEnemies + CONFIG.wave.enemiesPerWave * (n - 1)) * this.difficulty);
   }
 
   _pickType() {
@@ -74,6 +75,11 @@ export class WaveManager {
           this.toSpawn--;
           this.spawnTimer = CONFIG.wave.spawnInterval;
           const zombie = new Zombie(sp.x, sp.y, type);
+          zombie.speed *= 1 + (this.difficulty - 1) * 0.18;
+          zombie.hp = Math.ceil(zombie.hp * (1 + (this.difficulty - 1) * 0.22));
+          zombie.maxHp = zombie.hp;
+          zombie.score = Math.ceil(zombie.score * this.difficulty);
+          zombie.coins = Math.ceil(zombie.coins * Math.min(1.8, this.difficulty));
           if (isNight) {
             zombie.speed *= CONFIG.world.nightDifficultyMultiplier;
             zombie.hp = Math.ceil(zombie.hp * 1.12);

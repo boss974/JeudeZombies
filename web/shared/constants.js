@@ -24,5 +24,7 @@ export const STORAGE_KEYS = {
   BEST_SCORE: "zombies.bestScore",
   TOTAL_COINS: "zombies.totalCoins",
   STORY_MISSION_INDEX: "zombies.storyMission",
-  STORY_INTRO_SEEN: "zombies.storyIntroSeen"
+  STORY_INTRO_SEEN: "zombies.storyIntroSeen",
+  PLAYER_NAME: "zombies.playerName",
+  TOP_SCORES: "zombies.topScores"
 };

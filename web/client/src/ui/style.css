@@ -521,6 +521,61 @@ html, body {
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
+.player-panel {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  color: var(--c-lampions);
+}
+
+.player-panel label {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.player-panel input {
+  width: 190px;
+  height: 36px;
+  border: 1px solid var(--c-or-fonce);
+  border-radius: 6px;
+  background: rgba(20, 10, 5, 0.74);
+  color: #fff6d6;
+  padding: 0 10px;
+  font: 700 14px "Segoe UI", system-ui, sans-serif;
+  outline: none;
+}
+
+.leaderboard {
+  position: relative;
+  z-index: 3;
+  width: min(520px, 88vw);
+  margin-top: 12px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255, 230, 160, 0.22);
+  border-radius: 8px;
+  background: rgba(20, 10, 5, 0.38);
+}
+
+.leaderboard h2 {
+  font-size: 14px;
+  color: var(--c-cannelle);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.leaderboard ol {
+  max-height: 126px;
+  overflow: hidden;
+  text-align: left;
+  color: #f3ead6;
+  font-size: 12px;
+  line-height: 1.45;
+  padding-left: 22px;
+}
+
 #menu .hint, #gameover p, #victory p {
   color: #e8dbb6;
   margin-top: 8px;

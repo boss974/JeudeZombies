@@ -41,9 +41,10 @@ export class GameScene {
     requestAnimationFrame(this._loop);
   }
 
-  reset() {
+  reset(options = {}) {
     this.player = new Player(this.arena.width / 2, this.arena.height / 2);
-    this.waveManager = new WaveManager(this.arena);
+    this.difficulty = options.difficulty || 1;
+    this.waveManager = new WaveManager(this.arena, this.difficulty);
     this.waveManager.start();
     this.bullets = [];
     this.zombies = [];
@@ -58,7 +59,7 @@ export class GameScene {
     this.state = STATE.PLAYING;
   }
 
-  start() { this.reset(); }
+  start(options) { this.reset(options); }
 
   pause() { this.state = STATE.PAUSED; }
   resume() { this.state = STATE.PLAYING; }
