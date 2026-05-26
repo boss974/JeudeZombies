@@ -1,13 +1,84 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>L'Éveil de la Fournaise</title>
-  <meta http-equiv="refresh" content="0; url=/client/" />
+  <title>Zombie Base Defense - Web V1</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <script>location.replace("/client/");</script>
-  <p><a href="/client/">Lancer le jeu</a></p>
+  <div id="app">
+    <header class="topbar">
+      <div>
+        <h1>Zombie Base Defense</h1>
+        <p>Prototype Web V1 - Tower Defense 2D</p>
+      </div>
+      <div class="stats">
+        <span>Vague <b id="wave">1</b></span>
+        <span>Base <b id="baseHp">100</b> HP</span>
+        <span>Argent <b id="money">250</b></span>
+        <span>Niveau <b id="level">1</b></span>
+        <span>XP <b id="xp">0</b></span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel">
+        <h2>Troupes</h2>
+        <button class="tower-btn active" data-tower="turret">Tourelle - 100</button>
+        <button class="tower-btn" data-tower="grenade">Grenade - 180</button>
+        <button class="tower-btn" data-tower="cryo">Cryo - 150</button>
+        <button class="tower-btn" data-tower="sniper">Sniper - 220</button>
+
+        <h2>Actions</h2>
+        <button id="startWave">Lancer vague</button>
+        <button id="speedBtn">Vitesse x1</button>
+        <button id="dailyBtn">Connexion quotidienne</button>
+        <button id="donateBtn">Soutenir le jeu</button>
+
+        <h2>Paramètres</h2>
+        <label><input id="bloodToggle" type="checkbox" /> Effets renforcés selon l’âge</label>
+        <label><input id="autoWaveToggle" type="checkbox" /> Auto-vagues</label>
+        <button id="keysBtn">Touches</button>
+        <p class="hint">Clic gauche : placer une troupe. Les effets restent cartoon par défaut.</p>
+      </aside>
+
+      <section class="game-wrap">
+        <canvas id="game" width="960" height="540"></canvas>
+        <div id="message" class="message">Place tes défenses puis lance la vague.</div>
+      </section>
+
+      <aside class="panel">
+        <h2>PvP Défi</h2>
+        <input id="pvpName" placeholder="Nom du joueur" />
+        <input id="pvpReward" placeholder="Récompense interne" />
+        <button id="pvpBtn">Envoyer défi</button>
+
+        <h2>Boutique</h2>
+        <button>VIP</button>
+        <button>x2 argent 15 min</button>
+        <button>x3 vitesse vagues</button>
+        <button>Passe de combat</button>
+        <button>Skins non pay-to-win</button>
+
+        <h2>Journal</h2>
+        <div id="log" class="log"></div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Paramètres des touches</h2>
+      <p>Les touches sont sauvegardées dans le navigateur.</p>
+      <label>Pause <input id="keyPause" value="P" maxlength="1" /></label>
+      <label>Lancer vague <input id="keyWave" value="V" maxlength="1" /></label>
+      <label>Vendre <input id="keySell" value="S" maxlength="1" /></label>
+      <button id="saveKeys">Sauvegarder</button>
+      <button id="closeModal">Fermer</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
 </body>
 </html>
